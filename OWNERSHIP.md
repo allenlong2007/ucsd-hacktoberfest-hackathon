@@ -1,0 +1,27 @@
+# Ownership map: who works where
+
+This file is how we avoid merge conflicts. **Each person (and their AI model) edits only
+the folder they own, on their own branch.** CI checks every pull request against this map
+and fails it if a branch touches a folder it doesn't own.
+
+| Member | GitHub username | Branch | Owns folder | Scope |
+|--------|-----------------|--------|-------------|-------|
+| Member 1 (lead) | `allenlong2007` | `dev/frontend` | `frontend/` | UI, pages, components, styling |
+| Member 2 | `TODO` | `dev/backend` | `backend/` | API server, database, auth |
+| Member 3 | `TODO` | `dev/ai` | `ai/` | Models, prompts, data processing |
+| Member 4 | `TODO` | `dev/infra` | `infra/` | Deployment, scripts, demo, docs |
+
+Fill in the usernames and change the scope column once you've picked a project. If you
+rename a folder or branch, also update `.github/ownership.json`. CI reads that file.
+
+## Shared files (conflict hotspots)
+
+Nobody edits these on a dev branch. Change them only through a small PR that **only**
+touches shared files, and say so in the team chat first:
+
+- `shared/`: API contracts, shared types, and constants that more than one area depends on
+- Root files: `README.md`, `OWNERSHIP.md`, `AGENTS.md`, `CLAUDE.md`, `.github/`, `.claude/`, `scripts/`
+- Dependency manifests at the repo root, if we add any
+
+**Rule of thumb:** if your change needs someone else's folder, don't make it yourself. Open
+an issue or message the owner, and agree on the interface in `shared/` first.

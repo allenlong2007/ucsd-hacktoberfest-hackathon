@@ -1,0 +1,40 @@
+name: Ownership check
+
+# Fails a PR if its branch changes files outside the folder it owns (see OWNERSHIP.md).
+# Any other branch name may only touch the "shared" paths.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check changed paths against .github/ownership.json
+        env:
+          BRANCH: ${{ github.head_ref }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'EOF'
+          import json, os, subprocess, sys
+          owners = json.load(open(".github/ownership.json"))
+          branch = os.environ["BRANCH"]
+          allowed = owners.get(branch, owners["shared"])
+          changed = subprocess.run(
+              ["git", "diff", "--name-only", f"{os.environ['BASE']}...{os.environ['HEAD']}"],
+              capture_output=True, text=True, check=True,
+          ).stdout.split()
+          bad = [f for f in changed if not any(f == p or f.startswith(p) for p in allowed)]
+          if bad:
+              print(f"Branch '{branch}' may only change: {', '.join(allowed)}")
+              print("These files are outside its area:")
+              for f in bad:
+                  print(f"  - {f}")
+              print("Move these changes to a separate PR from the owning branch, or a shared-files PR.")
+              sys.exit(1)
+          print(f"OK: all {len(changed)} changed files are inside {', '.join(allowed)}")
+          EOF
