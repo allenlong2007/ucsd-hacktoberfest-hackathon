@@ -20,7 +20,7 @@ Nobody edits these on a dev branch. Change them only through a small PR that **o
 touches shared files, and say so in the team chat first:
 
 - `shared/`: API contracts, shared types, and constants that more than one area depends on
-- Root files: `README.md`, `OWNERSHIP.md`, `AGENTS.md`, `CLAUDE.md`, `.github/`, `.claude/`, `scripts/`
+- Root files: `README.md`, `OWNERSHIP.md`, `ONBOARDING.md`, `AGENTS.md`, `CLAUDE.md`, `.github/`, `.claude/`, `scripts/`
 - Dependency manifests at the repo root, if we add any
 
 **Rule of thumb:** if your change needs someone else's folder, don't make it yourself. Open
