@@ -29,7 +29,9 @@ DATA = Path(__file__).parent
 OUT_PATH = DATA / "out" / "stale_closures.jsonl"
 SAMPLE_PATH = DATA / "sample" / "stale_closures_sample.jsonl"
 
-STALE_ACTORS = {"github-actions", "stale", "k8s-triage-robot", "k8s-ci-robot"}
+# k8s-ci-robot is left out on purpose: Prow closes a PR as k8s-ci-robot whenever anyone types
+# "/close", so its stale closes are caught by the k8s-triage-robot comment text instead.
+STALE_ACTORS = {"github-actions", "stale", "k8s-triage-robot"}
 STALE_TEXT = re.compile(
     r"closed because it has not had recent activity|has been automatically closed|"
     r"marked as stale|closing this (pr|pull request) (due to|because)[^.]*(inactiv|stale)|"
