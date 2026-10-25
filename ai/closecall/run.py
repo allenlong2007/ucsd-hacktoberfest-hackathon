@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import re
 import sys
 import time
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -32,12 +34,22 @@ def load_env() -> None:
 def request_json(url: str, payload=None, headers=None, timeout=600) -> dict:
     request = Request(url, data=None if payload is None else json.dumps(payload).encode(),
                       headers={"Content-Type": "application/json", **(headers or {})})
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            return json.loads(response.read())
-    except HTTPError as exc:
-        # Do not include the authenticated URL (or the key) in errors/logs.
-        raise RuntimeError(f"Model service returned HTTP {exc.code}") from None
+    for attempt in range(5):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read())
+        except HTTPError as exc:
+            if exc.code == 429 and url.startswith("https://generativelanguage.googleapis.com/") and attempt < 4:
+                try:
+                    retry_after = float(exc.headers.get("Retry-After", "0"))
+                except ValueError:
+                    retry_after = 0
+                delay = max(retry_after, 2 ** (attempt + 1))
+                print(f"Gemini rate limit: retrying in {delay:g}s", file=sys.stderr)
+                time.sleep(delay)
+                continue
+            # Do not include the authenticated URL (or the key) in errors/logs.
+            raise RuntimeError(f"Model service returned HTTP {exc.code}") from None
 
 
 def gemini_models() -> list[str]:
@@ -90,12 +102,12 @@ def call_model(prompt: str, model: str, backend: str, timeout=600) -> tuple[dict
         else:
             body = request_json(
                 f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent",
-                {"contents": [{"role": "user", "parts": [{"text": instruction}]}],
-                 "generationConfig": {"temperature": 0}},
+                {"contents": [{"role": "user", "parts": [{"text": instruction}]}]},
                 {"x-goog-api-key": os.environ["GEMINI_API_KEY"]}, timeout)
             candidates = body.get("candidates", [])
             text = "".join(part.get("text", "") for part in
-                           (candidates[0].get("content", {}).get("parts", []) if candidates else []))
+                           (candidates[0].get("content", {}).get("parts", []) if candidates else [])
+                           if not part.get("thought"))
         try:
             return parse_response(text), time.perf_counter() - started
         except (ValueError, json.JSONDecodeError):
@@ -113,15 +125,24 @@ def stub_response(pr: dict) -> tuple[dict, float]:
             "summary": "ESCALATE: model output unavailable."}, 0.0
 
 
-def verify_claims(pr: dict, claims: list[dict]) -> list[dict]:
-    """Use Lio's verifier when available; otherwise use the required temporary stub."""
+def resolve_verifier(pr: dict):
+    """Honor PYTHONPATH first; never silently substitute a stub on real records."""
     try:
-        sys.path.insert(0, str(Path(__file__).parents[2] / "backend" / "verifier"))
-        from verify import verify_claims as real_verify  # type: ignore
-        return real_verify(pr, claims)
-    except (ImportError, FileNotFoundError):
-        return [{**claim, "verified": True, "check": "temporary stub verifier"}
-                for claim in claims]
+        sys.path.append(str(Path(__file__).parents[2] / "backend" / "verifier"))
+        real_verify = importlib.import_module("verify").verify_claims
+        return real_verify, "real"
+    except ModuleNotFoundError as exc:
+        if exc.name != "verify":
+            raise
+        if pr.get("_fixture") is not True:
+            raise RuntimeError("Real verifier required for non-fixture input. Set PYTHONPATH to its directory.") from None
+        return (lambda record, claims: [{**claim, "verified": True,
+                 "check": "temporary stub verifier (fixture only)"} for claim in claims]), "stub"
+
+
+def verify_claims(pr: dict, claims: list[dict]) -> list[dict]:
+    verifier, _ = resolve_verifier(pr)
+    return verifier(pr, claims)
 
 
 def verdict(pr: dict, claims: list[dict]) -> str:
@@ -164,12 +185,15 @@ def verdict(pr: dict, claims: list[dict]) -> str:
 
 
 def audit(pr: dict, use_stub: bool = False, model: str = MODEL, backend: str = "ollama") -> dict:
+    verifier, verifier_mode = resolve_verifier(pr)
+    if use_stub and pr.get("_fixture") is not True:
+        raise RuntimeError("--stub is allowed only on fixture records")
     try:
         response, latency = stub_response(pr) if use_stub else call_model(build_prompt(pr), model, backend)
     except (URLError, TimeoutError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"Ollama/model call failed: {exc}") from exc
     raw_claims = response.get("claims", []) if isinstance(response, dict) else []
-    checked = verify_claims(pr, raw_claims)
+    checked = verifier(pr, raw_claims)
     result = {
         "repo": pr.get("repo"), "pr_number": pr.get("pr_number"),
         "verdict": verdict(pr, checked),
@@ -179,6 +203,7 @@ def audit(pr: dict, use_stub: bool = False, model: str = MODEL, backend: str = "
         "claims_total": len(raw_claims),
         "claims_rejected": sum(c.get("verified") is False for c in checked),
         "model": f"{backend}:{model}", "latency_s": round(latency, 3),
+        "verifier": verifier_mode,
     }
     if "outcome" in pr:
         result["outcome"] = pr["outcome"]
@@ -193,7 +218,14 @@ def main() -> None:
     parser.add_argument("--model")
     parser.add_argument("--backend", choices=("ollama", "gemini"), default="ollama")
     parser.add_argument("--list-models", action="store_true")
+    parser.add_argument("--delay", type=float, default=2.0)
+    parser.add_argument("--resume", action="store_true", help="Skip already audited PRs in the output")
+    parser.add_argument("--workers", type=int, default=1, help="Maximum concurrent audits; keep Ollama at 1")
     args = parser.parse_args()
+    if args.delay < 0:
+        parser.error("--delay must be nonnegative")
+    if args.workers < 1:
+        parser.error("--workers must be at least 1")
     load_env()
     model = args.model or MODEL
     if args.backend == "gemini" or args.list_models:
@@ -211,13 +243,46 @@ def main() -> None:
         print(f"Using gemini:{model}", file=sys.stderr)
     if args.input is None:
         parser.error("input JSONL is required")
+    records = [json.loads(line) for line in args.input.read_text().splitlines() if line.strip()]
+    for record in records:
+        resolve_verifier(record)  # Fail before inference or truncating an output file.
+        if args.stub and record.get("_fixture") is not True:
+            parser.error("--stub is allowed only on fixture records")
     output = args.output or Path("ai/out/audits.jsonl")
     output.parent.mkdir(parents=True, exist_ok=True)
-    with args.input.open() as source, output.open("w") as target:
-        for line in source:
-            if line.strip():
-                target.write(json.dumps(audit(json.loads(line), args.stub, model, args.backend)) + "\n")
+    completed = set()
+    if args.resume and output.exists():
+        for line in output.read_text().splitlines():
+            row = json.loads(line)
+            if row.get("model") != f"{args.backend}:{model}" or row.get("verifier") != "real":
+                parser.error("Resume requires matching model and real verifier in existing audits")
+            completed.add((row["repo"], row["pr_number"]))
+    pending_records = iter(record for record in records
+                           if (record["repo"], record["pr_number"]) not in completed)
+    last_start = 0.0
+    with output.open("a" if args.resume else "w") as target, ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = {}
+        exhausted = False
+        while futures or not exhausted:
+            while len(futures) < args.workers and not exhausted:
+                record = next(pending_records, None)
+                if record is None:
+                    exhausted = True
+                    break
+                time.sleep(max(0, args.delay - (time.monotonic() - last_start)))
+                futures[pool.submit(audit, record, args.stub, model, args.backend)] = record
+                last_start = time.monotonic()
+            if not futures:
+                break
+            done, _ = wait(futures, return_when=FIRST_COMPLETED)
+            for future in done:
+                record = futures.pop(future)
+                result = future.result()
+                target.write(json.dumps(result) + "\n")
                 target.flush()
+                completed.add((record["repo"], record["pr_number"]))
+                print(f"{len(completed)}/{len(records)} {record['repo']}#{record['pr_number']}: "
+                      f"{result['verdict']} ({result['latency_s']}s)", file=sys.stderr)
 
 
 if __name__ == "__main__":
