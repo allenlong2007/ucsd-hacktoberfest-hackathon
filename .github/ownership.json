@@ -3,5 +3,5 @@
   "dev/backend": ["backend/"],
   "dev/ai": ["ai/"],
   "dev/infra": ["infra/"],
-  "shared": ["shared/", "README.md", "OWNERSHIP.md", "ONBOARDING.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".github/", ".claude/", "scripts/", ".gitignore", "CODEOWNERS"]
+  "shared": ["shared/", "README.md", "OWNERSHIP.md", "ONBOARDING.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".github/", ".claude/", "scripts/", ".gitignore"]
 }

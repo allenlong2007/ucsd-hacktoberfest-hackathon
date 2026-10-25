@@ -1,9 +1,5 @@
 # Owners are auto-requested as reviewers on PRs that touch their folder.
-/frontend/  @allenlong2007
-/backend/   @liogular-hash
-/ai/        @nileshbehera
-/infra/     @allenlong2007
-# Shared files and everything else
+# Later lines win, so the catch-all comes first.
 *           @allenlong2007
 /frontend/  @allenlong2007
 /backend/   @liogular-hash
