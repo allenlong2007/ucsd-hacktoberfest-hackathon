@@ -1,4 +1,4 @@
-import type { AuditResult, EvalSummary } from '../types'
+import type { AuditResult, EvalSummary, StaleClosure } from '../types'
 
 // Files live in public/data/. At 5:15 the fixtures are swapped for the real ai/out/ files.
 const BASE = `${import.meta.env.BASE_URL}data/`
@@ -29,4 +29,13 @@ export async function loadAudits(): Promise<AuditResult[]> {
 
 export async function loadEvalSummary(): Promise<EvalSummary> {
   return JSON.parse(await fetchText('eval_summary.json')) as EvalSummary
+}
+
+// Optional: PR title/author/closed_at for PRCard. If the file is missing, cards show "Unavailable".
+export async function loadStaleClosures(): Promise<StaleClosure[]> {
+  try {
+    return parseJsonl<StaleClosure>(await fetchText('stale_closures.jsonl'))
+  } catch {
+    return []
+  }
 }

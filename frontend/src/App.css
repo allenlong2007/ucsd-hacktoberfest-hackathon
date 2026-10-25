@@ -1,41 +1,24 @@
-/* Minimal app-shell layout only. Design tokens and component styles belong to
-   src/styles/ (agent 2, dev/frontend-ui). */
+/* App-shell layout only. Colors come from agent 2's --cc- tokens in src/styles/theme.css
+   (loaded after this file), with light fallbacks. Component styles live there too. */
 * { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, sans-serif; color: #111; background: #fff; line-height: 1.5; }
-a { color: #2563eb; }
+body { margin: 0; font-family: var(--cc-font, system-ui, -apple-system, sans-serif); color: var(--cc-text, #111); background: var(--cc-bg, #fff); line-height: 1.5; }
+a { color: var(--cc-link, #2563eb); }
 .app { max-width: 960px; margin: 0 auto; padding: 0 16px 48px; }
 .sample-banner { background: #facc15; color: #111; font-weight: 700; text-align: center; padding: 8px; margin: 0 -16px; }
-.app-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; padding: 16px 0; border-bottom: 1px solid #ddd; }
+.app-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--cc-border, #ddd); }
 .brand { font-size: 1.4rem; font-weight: 800; color: inherit; text-decoration: none; }
-.tagline { color: #666; flex: 1; }
+.tagline { color: var(--cc-muted, #666); flex: 1; }
 nav { display: flex; gap: 12px; }
 nav a { text-decoration: none; padding: 4px 8px; border-radius: 4px; }
-nav a.active { background: #2563eb; color: #fff; }
-.muted { color: #666; font-size: 0.9rem; }
-.error { color: #b91c1c; }
-.note { background: #f1f5f9; border-left: 4px solid #64748b; padding: 8px 12px; }
-
-.verdict { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; vertical-align: middle; }
-.verdict-confirmed { background: #e5e7eb; color: #374151; }
-.verdict-unsupported { background: #fee2e2; color: #991b1b; }
-.verdict-escalate { background: #fef3c7; color: #92400e; }
+nav a.active { background: var(--cc-link, #2563eb); color: var(--cc-bg, #fff); }
+.muted { color: var(--cc-muted, #666); font-size: 0.9rem; }
+.error { color: var(--cc-unsupported, #b91c1c); }
+.note { background: var(--cc-surface-alt, #f1f5f9); border-left: 4px solid var(--cc-border, #64748b); padding: 8px 12px; }
 
 .pr-list { list-style: none; padding: 0; display: grid; gap: 12px; }
-.pr-card { display: block; border: 1px solid #ddd; border-radius: 8px; padding: 12px; color: inherit; text-decoration: none; }
-.pr-card:hover { border-color: #2563eb; }
-.pr-card-top { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
-.pr-card p { margin: 6px 0; }
+.detail { display: grid; gap: 12px; }
+.detail h3 { margin-bottom: 0; }
 
-.claims { list-style: none; padding: 0; display: grid; gap: 8px; }
-.claims li { border-left: 4px solid; padding: 6px 10px; background: #fafafa; }
-.claim-ok { border-color: #16a34a; }
-.claim-rejected { border-color: #dc2626; }
-.claim-rejected > div:first-child { text-decoration: line-through; }
-.check { font-size: 0.85rem; color: #555; }
-
-.headline { display: flex; align-items: center; gap: 16px; margin: 24px 0 8px; }
-.headline-number { font-size: 3.5rem; font-weight: 800; color: #b91c1c; }
 .table-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; }
-th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #ddd; }
-.chart { margin: 24px 0; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--cc-border, #ddd); }
