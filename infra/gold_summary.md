@@ -1,16 +1,16 @@
 # Human label summary
 
-30 PRs; 35 submitted entries; **1 named human reviewer: Emmanuel**, per the user's
-explicit attribution. Repeated slots: 3, 10, 17, 24, 30. Source: user-uploaded label
-text, with label spelling normalized by permission and explanations preserved.
-The AI-assisted tags were removed from submitted explanations as requested.
+30 PRs; 35 submitted entries; **4 human reviewers: Allen, Emmanuel, Lio, Nilesh**.
+Reviewer names follow the team's corrected assignment and original label messages.
+Label spellings were normalized by permission; labels and explanations are preserved.
 
-## Repeated-entry consistency
+## Inter-reviewer agreement
 
-**2 of 5 agreed** (same person's repeated submissions, not inter-reviewer
-agreement). Conflicting slots: 10, 17, 30. Both original labels
-and explanations remain in the CSV. The prescribed conflict rule sets the final
-human_label to UNCERTAIN; it does not replace either submitted label.
+Inter-reviewer agreement: 2 of 5 double-labeled PRs (different reviewers, labeling independently). Small n, so indicative only.
+
+Disagreed: slots 10, 17, 30. Both submitted labels and explanations remain in the
+CSV. The prescribed conflict rule sets human_label to UNCERTAIN without replacing
+either submitted label.
 
 ## Human label vs inferred outcome — counts only
 
@@ -46,9 +46,9 @@ Columns below are **AI suggestions, not ground truth**.
 
 ## Limitations
 
-Emmanuel saw AI-suggested labels as cross-references before submitting his labels.
-All four source blocks were attributed to him by the user; there are no labels
-attributed to Allen, Lio, or Nilesh and no independent four-reviewer agreement.
-Review times were not supplied. Explanations are submitted judgments, not claims
-that this task independently verified every statement. Some source entries say
-"Key comment" without supplying a permalink; those placeholders are preserved.
+Only Emmanuel saw the AI suggestions before labeling.
+Reviewer independence and exposure are reported by the team, not independently
+verified by this transcription task. Review times were not supplied. Explanations
+are submitted judgments, not claims that this task independently verified every
+statement. Some source entries say "Key comment" without supplying a permalink;
+those placeholders are preserved.
