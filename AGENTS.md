@@ -6,8 +6,9 @@ Follow these rules exactly so we don't cause merge conflicts.
 ## 1. Find out who you're working for
 Run `git config user.name` and `gh api user --jq .login`, then look the user up in
 `OWNERSHIP.md`. That table gives **their branch** and **the one folder they own**.
-If the user isn't listed, or the table still says `TODO`, stop and ask them which
-row is theirs before you edit anything.
+If the user isn't listed, the table still says `TODO`, or the user has more than one row
+(Allen has two frontend agents), stop and ask them which row is yours before you edit
+anything, unless your instructions already name your branch.
 
 ## 2. Stay on your branch
 - Work only on the user's `dev/<area>` branch. Never commit directly to `main`.

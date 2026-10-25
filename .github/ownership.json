@@ -1,5 +1,6 @@
 {
-  "dev/frontend": ["frontend/"],
+  "dev/frontend": ["frontend/", "!frontend/src/components/", "!frontend/src/styles/"],
+  "dev/frontend-ui": ["frontend/src/components/", "frontend/src/styles/"],
   "dev/backend": ["backend/"],
   "dev/ai": ["ai/"],
   "dev/infra": ["infra/"],
