@@ -7,6 +7,16 @@ claimed by this document.
 ## Project name
 Close Call
 
+## Selected prize tracks
+
+- [x] Open-Source AI
+- [x] Best Use of Gemma 4
+
+Selected at the team's request. Open-Source AI team entry was confirmed verbally;
+Best Use of Gemma 4 eligibility is not confirmed by the recorded organizer answer.
+See `infra/organizer_questions.md`. These selections are in this draft only;
+no Devpost entry has been submitted or changed.
+
 ## Elevator pitch
 Before a stale bot closes a pull request, check whether closure is justified using
 source-quoted claims and a deterministic evidence verifier.
@@ -23,7 +33,12 @@ is ambiguous, incomplete, conflicting, or security-sensitive. It advises maintai
 and takes no action on GitHub.
 
 ## How we built it
-Our design uses local Gemma 4 through Ollama to write structured claims. A Python
+Team-provided runtime statement: Close Call runs Gemma 4 locally through Ollama or
+through the Gemini API, and the demo uses the Gemini API. This statement has not
+been verified by this documentation task; confirm the actual model identifier,
+API support, and demo execution before publication.
+
+Our design uses Gemma 4 to write structured claims. A Python
 verifier checks each claim's source, author, timestamp, and quotation. Verdicts use
 verified claims only. A React/TypeScript/Vite viewer presents audits and comparisons
 with stale-bot and metadata baselines. [Before submission: describe which components
@@ -66,7 +81,7 @@ Broader sampling, stronger historical snapshots and semantic verification, and
 maintainer studies before any production use. Automatic PR actions are out of scope.
 
 ## Built with
-Planned: Python, GitHub CLI, Ollama, Gemma 4, React, TypeScript, Vite.
+Planned: Python, GitHub CLI, Ollama, Gemini API, Gemma 4, React, TypeScript, Vite.
 [Confirm final stack and exact model artifact before submission.]
 
 ## Links and licenses
@@ -80,8 +95,10 @@ Planned: Python, GitHub CLI, Ollama, Gemma 4, React, TypeScript, Vite.
 
 ## Submission checklist (Emmanuel and Allen)
 - [x] Emmanuel reports organizer confirmation that teams can enter Open-Source AI.
-- [ ] Clarify Best Use of Gemma 4 eligibility; reported answer suggests local/cloud
-  execution counts for Open-Source AI only. Do not claim Gemma prize eligibility.
+- [x] Select Open-Source AI and Best Use of Gemma 4 in this draft at the team
+  request.
+- [ ] Confirm Best Use of Gemma 4 eligibility with the organizer/rules.
+- [ ] Verify the team-provided Gemini API demo statement against the actual run.
 - [ ] Replace placeholders with real results; name inferred labels and sample sizes.
 - [ ] Confirm author/team details and correct prize tracks; no eligibility guesses.
 - [ ] Verify final code, model/license, setup, and real-data demo.

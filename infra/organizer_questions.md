@@ -2,7 +2,8 @@
 
 Status: Emmanuel reports that he asked an organizer. Team entry in Open-Source AI
 was confirmed; the Gemma-track answer is recorded verbatim below and needs
-clarification before selecting Best Use of Gemma 4 on Devpost.
+clarification of Best Use of Gemma 4 eligibility. The team has requested both
+tracks in the Devpost draft; selection is not organizer confirmation.
 
 Questions asked:
 
@@ -20,8 +21,9 @@ The second answer appears to direct local/cloud execution to Open-Source AI only
 It does not clearly establish a Gemini API requirement or eligibility for Best
 Use of Gemma 4. Do not mark that track as confirmed.
 
-Source: Emmanuel's report in this chat. Organizer name, written rules link, and
-answer time/timezone were not supplied. No message has been sent by this agent.
+Source: Emmanuel's report in this chat. Organizer name: unknown (Emmanuel
+confirmed he does not have the name). Written rules link and answer time/timezone
+were not supplied. No message has been sent by this agent.
 
 ## Remaining clarification
 
