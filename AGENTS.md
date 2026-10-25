@@ -12,7 +12,7 @@ anything, unless your instructions already name your branch.
 
 ## 2. Stay on your branch
 - Work only on the user's `dev/<area>` branch. Never commit directly to `main`.
-- At the start of every session, run `git checkout dev/<area> && git pull --rebase origin main`.
+- At the start of every session, run `git checkout dev/<area> && git pull --no-rebase origin main`. Never use `--rebase`: it copies other people's commits onto your branch and makes your PR fail the ownership check.
 
 ## 3. Stay in your folder
 - You may read any file in the repo.
@@ -26,7 +26,7 @@ anything, unless your instructions already name your branch.
 - Make small commits with clear messages, for example `backend: add /login endpoint`.
 - Push to the user's branch: `git push -u origin dev/<area>`.
 - Merge into `main` only through a pull request: `gh pr create --base main --head dev/<area>`.
-- After someone else's PR merges, run `git pull --rebase origin main` again.
+- After someone else's PR merges, run `git pull --no-rebase origin main` again.
 
 ## 5. Interfaces between areas
 When your area talks to another one (for example frontend calling backend), the contract
