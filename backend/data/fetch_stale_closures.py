@@ -33,10 +33,10 @@ SAMPLE_PATH = DATA / "sample" / "stale_closures_sample.jsonl"
 # k8s-ci-robot is left out on purpose: Prow closes a PR as k8s-ci-robot whenever anyone types
 # "/close", so its stale closes are caught by the k8s-triage-robot comment text instead.
 STALE_ACTORS = {"github-actions", "stale", "k8s-triage-robot"}
+# Bot wording only. Kept narrow on purpose: a human writing "closing this, it's stale-..." is not a stale-bot close.
 STALE_TEXT = re.compile(
     r"closed because it has not had recent activity|has been automatically closed|"
-    r"marked as stale|closing this (pr|pull request) (due to|because)[^.]*(inactiv|stale)|"
-    r"lifecycle/rotten|no activity", re.I)
+    r"stalled for \d+ days with no activity|lifecycle/rotten", re.I)
 WINDOW_DAYS = 180
 MIN_OVERLAP, MIN_JACCARD, TOP_K = 0.5, 0.4, 3
 MIN_WRONGFUL = 15
@@ -112,9 +112,12 @@ def paginate(query, repo, limit):
         cursor = page["pageInfo"]["endCursor"]
 
 
-def is_stale_close(actor, close_comment):
-    return actor in STALE_ACTORS or actor.removesuffix("[bot]") in STALE_ACTORS or \
-        bool(STALE_TEXT.search(close_comment or ""))
+def is_stale_close(actor, close_comment, pr_author=""):
+    if actor in STALE_ACTORS or actor.removesuffix("[bot]") in STALE_ACTORS:
+        return True
+    if pr_author and actor == pr_author:  # authors closing their own PR are never stale closes
+        return False
+    return bool(STALE_TEXT.search(close_comment or ""))
 
 
 def find_close_comment(comments, closed_at):
@@ -135,7 +138,7 @@ def build_record(repo, node):
     for ev in node["closedEvents"]["nodes"]:
         actor = login(ev)
         cc = find_close_comment(comments, ev["createdAt"])
-        if is_stale_close(actor, cc["body"] if cc else ""):
+        if is_stale_close(actor, cc["body"] if cc else "", login(node)):
             closed_at, close_actor, close_comment = ev["createdAt"], actor, cc
             break
     else:
