@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
 from pathlib import Path
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from prompt import build_prompt, model_record
@@ -17,28 +19,92 @@ from prompt import build_prompt, model_record
 MODEL = "gemma4:e4b"
 
 
-def call_ollama(prompt: str, model: str = MODEL, timeout: int = 600) -> tuple[dict, float]:
-    started = time.perf_counter()
-    payload = json.dumps({"model": model, "prompt": prompt, "stream": False,
-                          "format": "json", "options": {"temperature": 0}}).encode()
-    request = Request("http://127.0.0.1:11434/api/generate", data=payload,
-                      headers={"Content-Type": "application/json"})
-    with urlopen(request, timeout=timeout) as response:
-        body = json.loads(response.read())
-    elapsed = time.perf_counter() - started
-    text = body.get("response", "")
+def load_env() -> None:
+    """Load ignored local config without overriding exported environment values."""
+    for path in (Path(__file__).parents[2] / ".env", Path(__file__).parents[1] / ".env"):
+        if path.is_file():
+            for line in path.read_text().splitlines():
+                key, sep, value = line.strip().removeprefix("export ").partition("=")
+                if sep and key and not key.startswith("#"):
+                    os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
+def request_json(url: str, payload=None, headers=None, timeout=600) -> dict:
+    request = Request(url, data=None if payload is None else json.dumps(payload).encode(),
+                      headers={"Content-Type": "application/json", **(headers or {})})
     try:
-        return json.loads(text), elapsed
-    except json.JSONDecodeError:
-        # One retry is required by the project spec. Ask for JSON without changing
-        # the source record or exposing future labels.
-        retry = Request("http://127.0.0.1:11434/api/generate", data=json.dumps({
-            "model": model, "prompt": prompt + "\nReturn valid JSON only; no markdown.",
-            "stream": False, "format": "json", "options": {"temperature": 0},
-        }).encode(), headers={"Content-Type": "application/json"})
-        with urlopen(retry, timeout=timeout) as response:
-            retry_body = json.loads(response.read())
-        return json.loads(retry_body.get("response", "")), time.perf_counter() - started
+        with urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read())
+    except HTTPError as exc:
+        # Do not include the authenticated URL (or the key) in errors/logs.
+        raise RuntimeError(f"Model service returned HTTP {exc.code}") from None
+
+
+def gemini_models() -> list[str]:
+    load_env()
+    key = os.environ.get("GEMINI_API_KEY")
+    if not key:
+        raise RuntimeError("Set GEMINI_API_KEY in the environment or ignored ai/.env file.")
+    names, token = [], ""
+    while True:
+        query = {"key": key, "pageSize": 1000}
+        if token:
+            query["pageToken"] = token
+        body = request_json("https://generativelanguage.googleapis.com/v1beta/models?" + urlencode(query))
+        names.extend(item["name"] for item in body.get("models", [])
+                     if re.search(r"gemma[-_ ]?4", item.get("name", ""), re.I)
+                     and "generateContent" in item.get("supportedGenerationMethods", []))
+        token = body.get("nextPageToken")
+        if not token:
+            return sorted(names)
+
+
+def parse_response(text: str) -> dict:
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text)
+    result = json.loads(text)
+    if not isinstance(result, dict) or not isinstance(result.get("claims"), list) or not all(
+        isinstance(claim, dict) for claim in result["claims"]
+    ) or not isinstance(result.get("reasons_not_to_close"), list) or not isinstance(result.get("summary"), str):
+        raise ValueError("Expected claims array, reasons_not_to_close array, and summary string")
+    return result
+
+
+def call_model(prompt: str, model: str, backend: str, timeout=600) -> tuple[dict, float]:
+    started = time.perf_counter()
+    for attempt in range(2):
+        instruction = prompt + ("\nReturn valid JSON only; no markdown." if attempt else "")
+        if backend == "ollama":
+            payload = {"model": model, "prompt": instruction, "stream": False,
+                       "format": "json", "options": {"temperature": 0}}
+            try:
+                body = request_json("http://127.0.0.1:11434/api/generate", payload, timeout=timeout)
+            except RuntimeError as exc:
+                if "HTTP 501" not in str(exc):
+                    raise
+                # Some local Gemma runtimes do not implement constrained JSON.
+                payload.pop("format")
+                body = request_json("http://127.0.0.1:11434/api/generate", payload, timeout=timeout)
+            text = body.get("response", "")
+        else:
+            body = request_json(
+                f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent",
+                {"contents": [{"role": "user", "parts": [{"text": instruction}]}],
+                 "generationConfig": {"temperature": 0}},
+                {"x-goog-api-key": os.environ["GEMINI_API_KEY"]}, timeout)
+            candidates = body.get("candidates", [])
+            text = "".join(part.get("text", "") for part in
+                           (candidates[0].get("content", {}).get("parts", []) if candidates else []))
+        try:
+            return parse_response(text), time.perf_counter() - started
+        except (ValueError, json.JSONDecodeError):
+            if attempt:
+                raise
+
+
+def call_ollama(prompt: str, model: str = MODEL, timeout: int = 600) -> tuple[dict, float]:
+    return call_model(prompt, model, "ollama", timeout)
 
 
 def stub_response(pr: dict) -> tuple[dict, float]:
@@ -97,9 +163,9 @@ def verdict(pr: dict, claims: list[dict]) -> str:
     return "ESCALATE"
 
 
-def audit(pr: dict, use_stub: bool = False, model: str = MODEL) -> dict:
+def audit(pr: dict, use_stub: bool = False, model: str = MODEL, backend: str = "ollama") -> dict:
     try:
-        response, latency = stub_response(pr) if use_stub else call_ollama(build_prompt(pr), model)
+        response, latency = stub_response(pr) if use_stub else call_model(build_prompt(pr), model, backend)
     except (URLError, TimeoutError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"Ollama/model call failed: {exc}") from exc
     raw_claims = response.get("claims", []) if isinstance(response, dict) else []
@@ -112,7 +178,7 @@ def audit(pr: dict, use_stub: bool = False, model: str = MODEL) -> dict:
         "reasons_not_to_close": response.get("reasons_not_to_close", []) if isinstance(response, dict) else [],
         "claims_total": len(raw_claims),
         "claims_rejected": sum(c.get("verified") is False for c in checked),
-        "model": model, "latency_s": round(latency, 3),
+        "model": f"{backend}:{model}", "latency_s": round(latency, 3),
     }
     if "outcome" in pr:
         result["outcome"] = pr["outcome"]
@@ -121,17 +187,37 @@ def audit(pr: dict, use_stub: bool = False, model: str = MODEL) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", type=Path)
+    parser.add_argument("input", type=Path, nargs="?")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--stub", action="store_true")
-    parser.add_argument("--model", default=MODEL)
+    parser.add_argument("--model")
+    parser.add_argument("--backend", choices=("ollama", "gemini"), default="ollama")
+    parser.add_argument("--list-models", action="store_true")
     args = parser.parse_args()
+    load_env()
+    model = args.model or MODEL
+    if args.backend == "gemini" or args.list_models:
+        available = gemini_models()
+        if args.list_models:
+            print(json.dumps(available))
+            return
+        if not available:
+            parser.error("No Gemma 4 generateContent model is available for this API key.")
+        model = args.model or available[0]
+        if not model.startswith("models/"):
+            model = "models/" + model
+        if model not in available:
+            parser.error("Requested model is not in the discovered Gemma 4 model list.")
+        print(f"Using gemini:{model}", file=sys.stderr)
+    if args.input is None:
+        parser.error("input JSONL is required")
     output = args.output or Path("ai/out/audits.jsonl")
     output.parent.mkdir(parents=True, exist_ok=True)
     with args.input.open() as source, output.open("w") as target:
         for line in source:
             if line.strip():
-                target.write(json.dumps(audit(json.loads(line), args.stub, args.model)) + "\n")
+                target.write(json.dumps(audit(json.loads(line), args.stub, model, args.backend)) + "\n")
+                target.flush()
 
 
 if __name__ == "__main__":
