@@ -1,20 +1,40 @@
 # Thirty-PR gold-set protocol
 
-Status: sheet prepared; 0 real PRs assigned or reviewed. Lio's real sample is not
-available in the inspected checkout or backend branch. Never label the fake
-`shared/fixtures/` records as real observations.
+Status: 30 real Jest PRs assigned and inspected by the agent on GitHub. Provisional
+labels and rationales are in the `agent_*` columns of `infra/gold_set.csv`, with
+source excerpts and page hashes in `infra/gold_set_agent_evidence.jsonl`.
+**0 human reviews are claimed.** Emmanuel must confirm or replace each agent label
+in his own columns; Nilesh's independent fields remain blank.
 
-## Select and record the sample
+## Selected sample and provenance
 
-Use `backend/data/sample/stale_closures_sample.jsonl` once Lio supplies it. Record
-its commit SHA and SHA-256 in every assigned row. Confirm `_fixture` is absent/false,
-repo/PR pairs are unique, and the rows describe actual stale-bot closures. Pin an
-eligible population before looking at human judgments. For a simple reproducible
-selection, sort unique eligible repo/PR pairs lexicographically and sample 30
-without replacement using Python `random.Random(0).sample`; save the selected
-order in the sheet. If fewer than 30 are available, use all and report the shortfall;
-do not duplicate rows. Document exclusions and reasons separately in notes.
-Do not change selection to produce more favorable model results.
+The supplied backend sample has 42 Jest PRs: 5 `redone_later` and 37 `no_evidence`.
+At Emmanuel's instruction, include all 5 inferred wrongful closures and 25 others.
+The latter are sampled without replacement from PR-number-sorted `no_evidence`
+records with `random.Random(0).sample(..., 25)`. Preserve this order in the sheet.
+Every row records the backend commit and SHA-256 of the full input sample.
+No fixture records or duplicate PRs are included.
+
+This replaces the earlier plan to sample 30 uniformly. It is outcome-stratified:
+**do not estimate the 42-PR population's wrongful-closure rate from these 30**.
+The five collector labels are inferred, not human-confirmed wrongful closures.
+The agent saw the outcome strata during selection and opened present-day GitHub
+pages, so these are neither blinded human labels nor fully reconstructed historical
+snapshots. A human should make their own close-time judgment, without copying the
+outcome or accepting an agent label uncritically.
+
+Agent review fetched all 30 PR conversation pages and inspected their descriptions,
+visible comments and reviews, alongside the sample's close-time fields. Relevant
+linked issues were opened where needed for the rationale. Full diffs, edit history,
+and all linked issue timelines were not reconstructed. Unresolved cases are marked
+UNCERTAIN rather than treating inactivity as proof of abandonment.
+
+`AGENT_REVIEWED_PENDING_HUMAN` does not count toward completed gold labels.
+The agent columns are suggestions with rationale and source URLs; human reviewer
+and adjudication columns stay empty until the corresponding work is actually done.
+`inferred_outcome` is copied from the collector, not independently verified by this
+review. `followup_180d_complete` indicates elapsed observation opportunity only,
+not that all later events were collected or inspected.
 
 ## Independent close-time judgments
 

@@ -104,8 +104,8 @@ The frontend owner publishes real `ai/out/audits.jsonl` and
 
 Planned real source: public GitHub PR timelines, comments, reviews, linked issues,
 and diffs collected by Lio. The contract's sample path is
-`backend/data/sample/stale_closures_sample.jsonl`; it was absent in the inspected
-main and backend branch. `shared/fixtures/` is explicitly FAKE, including example
+`backend/data/sample/stale_closures_sample.jsonl`; it is now available on the backend branch (see `infra/gold_set.csv` for the pinned
+commit). The 42 Jest PRs supplied 30 agent-assisted reviews pending human confirmation. `shared/fixtures/` is explicitly FAKE, including example
 repository names and results. Do not copy those rows into the gold set.
 
 The inference input must exclude `outcome`, `evidence`, post-close events, and
