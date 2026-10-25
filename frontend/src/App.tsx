@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { loadAudits, loadEvalSummary } from './api/data'
-import type { AuditResult, EvalSummary } from './types'
+import { loadAudits, loadEvalSummary, loadStaleClosures } from './api/data'
+import type { AuditResult, EvalSummary, StaleClosure } from './types'
 import AuditPage from './pages/AuditPage'
 import ResultsPage from './pages/ResultsPage'
 
@@ -19,13 +19,15 @@ export default function App() {
   const route = useHashRoute()
   const [audits, setAudits] = useState<AuditResult[] | null>(null)
   const [summary, setSummary] = useState<EvalSummary | null>(null)
+  const [closures, setClosures] = useState<StaleClosure[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([loadAudits(), loadEvalSummary()])
-      .then(([a, s]) => {
+    Promise.all([loadAudits(), loadEvalSummary(), loadStaleClosures()])
+      .then(([a, s, c]) => {
         setAudits(a)
         setSummary(s)
+        setClosures(c)
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
   }, [])
@@ -57,7 +59,7 @@ export default function App() {
       <main>
         {error && <p className="error">Could not load data: {error}</p>}
         {!error && (!audits || !summary) && <p>Loading…</p>}
-        {audits && summary && (onResults ? <ResultsPage summary={summary} /> : <AuditPage audits={audits} route={route} />)}
+        {audits && summary && (onResults ? <ResultsPage summary={summary} /> : <AuditPage audits={audits} closures={closures} route={route} />)}
       </main>
     </div>
   )
