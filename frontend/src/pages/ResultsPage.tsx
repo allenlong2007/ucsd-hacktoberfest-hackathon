@@ -64,7 +64,7 @@ function LetThrough({ approaches, wrongful }: { approaches: Approach[]; wrongful
   )
 }
 
-function FactChecker({ summary }: { summary: EvalSummary }) {
+function FactChecker({ summary, auditCount }: { summary: EvalSummary; auditCount: number }) {
   const models = summary.approaches.filter((a) => a.model && a.claims_total != null)
   const { hallucination } = summary
   if (models.length === 0 && !hallucination) return null
@@ -81,7 +81,7 @@ function FactChecker({ summary }: { summary: EvalSummary }) {
               {a.claims_rejected ?? 0} <span>of {a.claims_total}</span>
             </div>
             <div>invented claims caught</div>
-            {a.avg_latency_s != null && <div className="muted">avg {a.avg_latency_s.toFixed(1)} s per PR · n={a.n} PRs</div>}
+            {a.avg_latency_s != null && <div className="muted">avg {a.avg_latency_s.toFixed(1)} s per PR</div>}
           </div>
         ))}
       </div>
@@ -93,13 +93,15 @@ function FactChecker({ summary }: { summary: EvalSummary }) {
       )}
       <p className="muted">
         A rejected claim is one whose quote, author or date didn't match the PR data. That's a failed citation, not
-        always a fabrication. Latencies come from different hardware and settings, so they aren't a controlled speed test.
+        always a fabrication. Claim counts and latency cover every audited PR (n={auditCount}), including newer closures
+        left out of the comparison above. Latencies come from different hardware and settings, so they aren't a controlled
+        speed test.
       </p>
     </section>
   )
 }
 
-export default function ResultsPage({ summary }: { summary: EvalSummary }) {
+export default function ResultsPage({ summary, auditCount }: { summary: EvalSummary; auditCount: number }) {
   const { headline, approaches, gold_set } = summary
 
   return (
@@ -114,7 +116,7 @@ export default function ResultsPage({ summary }: { summary: EvalSummary }) {
 
       <LetThrough approaches={approaches} wrongful={headline.wrongful} />
 
-      <FactChecker summary={summary} />
+      <FactChecker summary={summary} auditCount={auditCount} />
 
       <details className="more-metrics">
         <summary>More metrics: recall and precision of UNSUPPORTED</summary>
