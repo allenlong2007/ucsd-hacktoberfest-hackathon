@@ -274,13 +274,22 @@ def main():
     ap.add_argument("--merged-max", type=int, default=3000, help="merged PRs indexed per repo")
     ap.add_argument("--extra-repos", default=",".join(EXTRA_REPOS))
     ap.add_argument("--no-extra", action="store_true", help="never add extra repos")
+    ap.add_argument("--append", action="store_true",
+                    help="keep rows already in out/stale_closures.jsonl (from repos not being re-scanned)")
     args = ap.parse_args()
 
     print("GraphQL rate limit:", rate_limit_line())
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     records = []
+    if args.append and OUT_PATH.exists():
+        scanning = {r.strip() for r in args.repos.split(",")}
+        with open(OUT_PATH, encoding="utf-8") as fh:
+            records = [r for r in map(json.loads, filter(str.strip, fh)) if r["repo"] not in scanning]
+        print(f"--append: keeping {len(records)} existing rows from other repos")
     try:
         with open(OUT_PATH, "w", encoding="utf-8") as sink:
+            for r in records:
+                sink.write(json.dumps(r) + "\n")
             for repo in args.repos.split(","):
                 records += collect(repo.strip(), args, sink)
             if not args.no_extra and sum(r["outcome"] != "no_evidence" for r in records) < MIN_WRONGFUL:
