@@ -1,8 +1,8 @@
 # Close Call — Devpost draft
 
 Draft only. Replace every bracketed field with verified information before
-submission. No real evaluation, video, eligibility, or completed submission is
-claimed by this document.
+submission. Evaluation results below are sourced from the AI branch; video, eligibility,
+and submission completion still require confirmation.
 
 ## Project name
 Close Call
@@ -50,21 +50,41 @@ labels. These future events stay out of model inputs. Diff similarity is used fo
 labeling only. Emmanuel will hand-review 30 real PRs, and Nilesh will independently double-check
 5 selected PRs. Preserve and adjudicate disagreements on that overlap.
 
-## Results — fill from real output only
-- Dataset: [N stale closures], [repository list], collected [date/time and timezone].
-- Follow-up coverage and exclusions: [counts and reasons].
-- Inferred wrongful closures: [count]/[eligible N] ([rate]).
-- Shared comparison subset: [N and sampling method].
-- Stale bot: recall [value], precision [value or undefined], escalation [value].
-- Metadata heuristic: recall [value], precision [value or undefined], escalation [value].
-- Close Call: recall [value], precision [value or undefined], escalation [value].
-- Claim verification: [rejected]/[total], with rejection reasons [summary].
-- Gold set: [completed N]/30; pre-adjudication agreement on double-checked subset [matches]/[completed pairs, target 5];
-  agreement with inferred labels [value and denominator]; uncertain cases [N].
+## Evaluation results
 
-Never substitute `shared/fixtures/` or current viewer example numbers. A rejected
-claim is a verification failure; inspect the cause before calling it hallucination.
-No evidence of a later event is not proof that closure was correct.
+Source: `ai/out/eval_summary.json` at `dev/ai` commit `d7218c4c341d6f0191e1d41e509bbdf3da59cf30`
+(generated `2026-10-25T23:46:48.247427+00:00`), plus `infra/gold_summary.md`.
+The evaluation source was not yet merged into main when this draft was updated;
+recheck against the merged file before publication. `gold_set` is currently null,
+so no Close Call-versus-human gold score is available yet.
+
+**Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
+under the inferred later-redo label. The stale bot let all 5 close; Close Call
+approved none of them and sent all 5 to a human.** These are historical replay
+results, not actions taken on GitHub or proof of maintainer intent.
+
+Seventeen newer closures were excluded because their 180-day window was incomplete.
+All approaches below use the same 25 eligible closures.
+
+| Approach | Inferred wrongful closures approved for closing | Inferred wrongful closures escalated | UNSUPPORTED recall | UNSUPPORTED precision | Overall escalation rate |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Stale bot | 5 | 0 | 0 | undefined | 0% |
+| Metadata heuristic | 5 | 0 | 0 | 0 | 0% |
+| Gemma 4 26B via Gemini API | 0 | 5 | 0 | 0 | 88% |
+| Gemma 4 E2B via local Ollama | 0 | 5 | 0 | 0 | 88% |
+
+All five inferred wrongful cases were ESCALATE, not UNSUPPORTED. The result shows
+conservative deferral to humans, not five affirmative wrongful-closure predictions.
+An 88% escalation rate also means substantial human review remains.
+Exact reported models: `gemini:models/gemma-4-26b-a4b-it` and `ollama:gemma4:e2b`.
+
+The separate 30-PR gold set has four reviewers and five double-labeled PRs:
+inter-reviewer agreement was 2 of 5, with disagreements on slots 10, 17, 30.
+Small n, so indicative only. Final labels: 2 JUSTIFIED, 5 NOT_JUSTIFIED,
+23 UNCERTAIN. AI suggestions, not ground truth, matched 28 of 30 final labels.
+Only Emmanuel saw the AI suggestions before labeling. These 30 are an
+outcome-stratified selection from 42 PRs and have a different denominator from
+the 25 eligible-closure evaluation; do not combine their counts or percentages.
 
 ## Challenges
 Reconstructing historical evidence without leaking future outcomes; preserving
@@ -99,7 +119,8 @@ Planned: Python, GitHub CLI, Ollama, Gemini API, Gemma 4, React, TypeScript, Vit
   request.
 - [ ] Confirm Best Use of Gemma 4 eligibility with the organizer/rules.
 - [ ] Verify the team-provided Gemini API demo statement against the actual run.
-- [ ] Replace placeholders with real results; name inferred labels and sample sizes.
+- [x] Add sourced evaluation counts and human-label summary with inferred-label caveats.
+- [ ] Recheck results after the evaluation file merges; fill the pending gold_set score.
 - [ ] Confirm author/team details and correct prize tracks; no eligibility guesses.
 - [ ] Verify final code, model/license, setup, and real-data demo.
 - [ ] Attach final video and verify links signed out.

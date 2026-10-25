@@ -3,7 +3,8 @@
 Status: documentation draft for Allen to incorporate through a shared-files PR. The
 architecture below is the agreed design in `shared/PLAN.md` and `shared/CONTRACT.md`;
 the complete collector → model → verifier → evaluation pipeline is not yet present
-on the inspected main checkout. No benchmark results have been validated here.
+on the inspected main checkout. Reported evaluation results are transcribed below; this infra task did not rerun
+the model evaluation.
 
 ## The problem
 
@@ -65,17 +66,18 @@ Forbidden. Restore API access before attempting collection.
 
 ### Planned local model setup (not yet verified)
 
-The contract names `gemma4:e4b`. Confirm that exact tag is available from the
-publisher/Ollama before running the pull; do not silently substitute another model.
+The older contract names `gemma4:e4b`, but the supplied evaluation reports
+`ollama:gemma4:e2b`. The commands below use that evaluated local tag; confirm
+availability and follow the AI owner's merged instructions.
 With Ollama installed and the tag confirmed:
 
 ```bash
 # Separate terminal, only if an Ollama service is not already running:
 ollama serve
 # Another terminal:
-ollama pull gemma4:e4b
+ollama pull gemma4:e2b
 ollama list
-ollama run gemma4:e4b 'Return a short greeting.'
+ollama run gemma4:e2b 'Return a short greeting.'
 ```
 
 The greeting checks local model execution only. It does not validate Close Call's
@@ -125,6 +127,42 @@ the same eligible records or explicitly disclose different denominators. Give n,
 repository list, collection date, exclusions, missing data, and observation-window
 coverage. Leave undefined metrics null rather than claiming zero.
 
+## Evaluation results
+
+Source: `ai/out/eval_summary.json` at `dev/ai` commit `d7218c4c341d6f0191e1d41e509bbdf3da59cf30`
+(generated `2026-10-25T23:46:48.247427+00:00`), plus `infra/gold_summary.md`.
+The evaluation source was not yet merged into main when this draft was updated;
+recheck against the merged file before publication. `gold_set` is currently null,
+so no Close Call-versus-human gold score is available yet.
+
+**Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
+under the inferred later-redo label. The stale bot let all 5 close; Close Call
+approved none of them and sent all 5 to a human.** These are historical replay
+results, not actions taken on GitHub or proof of maintainer intent.
+
+Seventeen newer closures were excluded because their 180-day window was incomplete.
+All approaches below use the same 25 eligible closures.
+
+| Approach | Inferred wrongful closures approved for closing | Inferred wrongful closures escalated | UNSUPPORTED recall | UNSUPPORTED precision | Overall escalation rate |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Stale bot | 5 | 0 | 0 | undefined | 0% |
+| Metadata heuristic | 5 | 0 | 0 | 0 | 0% |
+| Gemma 4 26B via Gemini API | 0 | 5 | 0 | 0 | 88% |
+| Gemma 4 E2B via local Ollama | 0 | 5 | 0 | 0 | 88% |
+
+All five inferred wrongful cases were ESCALATE, not UNSUPPORTED. The result shows
+conservative deferral to humans, not five affirmative wrongful-closure predictions.
+An 88% escalation rate also means substantial human review remains.
+Exact reported models: `gemini:models/gemma-4-26b-a4b-it` and `ollama:gemma4:e2b`.
+
+The separate 30-PR gold set has four reviewers and five double-labeled PRs:
+inter-reviewer agreement was 2 of 5, with disagreements on slots 10, 17, 30.
+Small n, so indicative only. Final labels: 2 JUSTIFIED, 5 NOT_JUSTIFIED,
+23 UNCERTAIN. AI suggestions, not ground truth, matched 28 of 30 final labels.
+Only Emmanuel saw the AI suggestions before labeling. These 30 are an
+outcome-stratified selection from 42 PRs and have a different denominator from
+the 25 eligible-closure evaluation; do not combine their counts or percentages.
+
 ## Licenses and attribution
 
 Repository code: MIT, as confirmed by the root `LICENSE`; preserve its copyright
@@ -150,5 +188,5 @@ Human review remains required. Do not publish security-sensitive details.
 Allen: frontend; Lio: collection/verifier/baselines; Nilesh: model/evaluation;
 Emmanuel: docs/gold labels/demo/submission preparation. See `infra/devpost.md`,
 `infra/demo_script.md`, and `infra/organizer_questions.md`. Organizer answers are recorded in `infra/organizer_questions.md`: teams may enter
-Open-Source AI; Best Use of Gemma 4 eligibility needs clarification. Real results,
+Open-Source AI; Best Use of Gemma 4 eligibility needs clarification. Evaluation counts are reported above; model-versus-human gold scoring,
 recorded video, and Devpost submission remain pending.
