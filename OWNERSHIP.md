@@ -9,9 +9,9 @@ and fails it if a branch touches a folder it doesn't own.
 | Allen (lead) | `allenlong2007` | `dev/frontend` | `frontend/` | UI, pages, components, styling |
 | Lio | `liogular-hash` | `dev/backend` | `backend/` | API server, database, auth |
 | Nilesh | `nileshbehera` | `dev/ai` | `ai/` | Models, prompts, data processing |
-| Member 4 (joining later) | `TODO` | `dev/infra` | `infra/` | Deployment, scripts, demo, docs |
+| Emmanuel | `EmmanuelR21-del` | `dev/infra` | `infra/` | Deployment, scripts, demo, docs |
 
-Member 4 is not assigned yet. Nobody else works in `infra/` until they join. Change the scope column once you've picked a project. If you
+Change the scope column once you've picked a project. If you
 rename a folder or branch, also update `.github/ownership.json`. CI reads that file.
 
 ## Shared files (conflict hotspots)
