@@ -114,8 +114,9 @@ an **inferred** wrongful-closure label, not proof of maintainer intent. Diff
 similarity is used only for outcome labeling, never as a predictor. `no_evidence`
 does not mean closure was justified, especially with incomplete follow-up.
 
-Emmanuel and Nilesh independently review 30 real PRs using `infra/gold_set.csv`
-and `infra/labeling.md`. Hand judgments of closure justification are distinct from
+Emmanuel reviews all 30 real PRs; Nilesh independently double-checks 5 selected PRs
+using `infra/gold_set.csv` and `infra/labeling.md`. Report reviewer agreement only
+on those 5, with its actual denominator. Hand judgments of closure justification are distinct from
 future-event labels; retain disagreements and ambiguous cases.
 
 Report wrongful-closure recall, UNSUPPORTED precision, escalation rate, and rejected
@@ -148,5 +149,6 @@ Human review remains required. Do not publish security-sensitive details.
 
 Allen: frontend; Lio: collection/verifier/baselines; Nilesh: model/evaluation;
 Emmanuel: docs/gold labels/demo/submission preparation. See `infra/devpost.md`,
-`infra/demo_script.md`, and `infra/organizer_questions.md`. Organizer eligibility,
-real results, recorded video, and Devpost submission remain pending.
+`infra/demo_script.md`, and `infra/organizer_questions.md`. Organizer answers are recorded in `infra/organizer_questions.md`: teams may enter
+Open-Source AI; Best Use of Gemma 4 eligibility needs clarification. Real results,
+recorded video, and Devpost submission remain pending.

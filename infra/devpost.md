@@ -32,8 +32,8 @@ actually ran, exact model/version, hardware, and the final integration commit.]
 ## What makes the evaluation useful
 Future reopening or near-identical merges within 180 days provide inferred outcome
 labels. These future events stay out of model inputs. Diff similarity is used for
-labeling only. We also plan independent hand review by Emmanuel and Nilesh of 30
-real PRs, with disagreements preserved and adjudicated.
+labeling only. Emmanuel will hand-review 30 real PRs, and Nilesh will independently double-check
+5 selected PRs. Preserve and adjudicate disagreements on that overlap.
 
 ## Results — fill from real output only
 - Dataset: [N stale closures], [repository list], collected [date/time and timezone].
@@ -44,7 +44,7 @@ real PRs, with disagreements preserved and adjudicated.
 - Metadata heuristic: recall [value], precision [value or undefined], escalation [value].
 - Close Call: recall [value], precision [value or undefined], escalation [value].
 - Claim verification: [rejected]/[total], with rejection reasons [summary].
-- Gold set: [completed N]/30; pre-adjudication agreement [value and denominator];
+- Gold set: [completed N]/30; pre-adjudication agreement on double-checked subset [matches]/[completed pairs, target 5];
   agreement with inferred labels [value and denominator]; uncertain cases [N].
 
 Never substitute `shared/fixtures/` or current viewer example numbers. A rejected
@@ -79,7 +79,9 @@ Planned: Python, GitHub CLI, Ollama, Gemma 4, React, TypeScript, Vite.
 - Third-party data: public GitHub content; preserve attribution and source terms.
 
 ## Submission checklist (Emmanuel and Allen)
-- [ ] Organizer confirms local Ollama eligibility and Open-Source AI team eligibility.
+- [x] Emmanuel reports organizer confirmation that teams can enter Open-Source AI.
+- [ ] Clarify Best Use of Gemma 4 eligibility; reported answer suggests local/cloud
+  execution counts for Open-Source AI only. Do not claim Gemma prize eligibility.
 - [ ] Replace placeholders with real results; name inferred labels and sample sizes.
 - [ ] Confirm author/team details and correct prize tracks; no eligibility guesses.
 - [ ] Verify final code, model/license, setup, and real-data demo.

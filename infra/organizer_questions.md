@@ -1,30 +1,38 @@
-# Organizer questions and handoff
+# Organizer answers and handoff
 
-Status: NOT ASKED / no organizer answers recorded. Emmanuel must speak with an
-organizer; this agent cannot find an organizer physically or send a text message.
+Status: Emmanuel reports that he asked an organizer. Team entry in Open-Source AI
+was confirmed; the Gemma-track answer is recorded verbatim below and needs
+clarification before selecting Best Use of Gemma 4 on Devpost.
 
-Ask verbatim:
+Questions asked:
 
 > Does running Gemma 4 locally through Ollama count for Best Use of Gemma 4, or
 > must it use the Gemini API? Are teams allowed in the Open-Source AI challenge?
 
-Record before selecting Devpost prize tracks:
+## Reported answers
 
-| Question | Answer | Organizer/source | Answered at (include timezone) |
-| --- | --- | --- | --- |
-| Local Gemma 4 via Ollama eligible? API required? | Pending | Pending | Pending |
-| Teams allowed in Open-Source AI challenge? | Pending | Pending | Pending |
+- **Open-Source AI team eligibility:** Emmanuel reports the organizer said yes to
+  entering the Open-Source AI challenge as a team.
+- **Gemma question, exact wording reported by Emmanuel:**
+  > no it would count to open source only if you ran it locally or on the cloud
 
-Ask for a written rules link or named organizer confirmation. If answers are
-ambiguous, confirm the team's four-person entry and exact model/runtime. Do not
-change architecture or claim eligibility based on an assumption.
+The second answer appears to direct local/cloud execution to Open-Source AI only.
+It does not clearly establish a Gemini API requirement or eligibility for Best
+Use of Gemma 4. Do not mark that track as confirmed.
 
-Text for Emmanuel to send Allen after receiving answers:
+Source: Emmanuel's report in this chat. Organizer name, written rules link, and
+answer time/timezone were not supplied. No message has been sent by this agent.
 
-“Organizer [name] confirmed at [time/timezone]: local Gemma 4 via Ollama [qualifies /
-does not qualify; API requirement]. Teams [are / are not] allowed in the Open-Source
-AI challenge. Rules/source: [link or attribution].”
+## Remaining clarification
 
-Until then, an accurate status message is: “Infra drafts and gold-set sheet are
-prepared. Eligibility answers are still pending; I will send them after speaking
-with an organizer.” No message has been sent by this agent.
+Ask: “To confirm: does our Gemma 4 through Ollama entry qualify only for Open-Source
+AI and not Best Use of Gemma 4? What exact requirement would qualify us for the
+Gemma track—is the Gemini API required?” Record the organizer's name and a rules
+link if available. Keep architecture changes separate from eligibility assumptions.
+
+## Message Emmanuel can send Allen
+
+“I asked an organizer: yes, teams can enter Open-Source AI. For the Gemma question,
+they said, 'no it would count to open source only if you ran it locally or on the
+cloud'. That sounds like Open-Source AI only; I still need explicit clarification
+on Best Use of Gemma 4 and whether the Gemini API is required.”
