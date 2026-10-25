@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import { ClaimList, PRCard } from '../components'
-import type { AuditResult, StaleClosure } from '../types'
+import type { AuditResult, StaleClosure, Verdict } from '../types'
+import { modelName } from '../modelNames'
+
+const VERDICTS: Verdict[] = ['UNSUPPORTED', 'ESCALATE', 'CONFIRMED']
 
 export function auditKey(a: Pick<AuditResult, 'repo' | 'pr_number'>): string {
   return `${a.repo}/${a.pr_number}`
@@ -26,8 +30,9 @@ function AuditDetail({ audit, closure }: { audit: AuditResult; closure: StaleClo
       <a href="#/audit">← All audits</a>
       <PRCard {...cardProps(audit, closure)} />
       <p className="muted">
-        {audit.claims_total} claims written, {audit.claims_rejected} rejected by the verifier · {audit.model} ·{' '}
+        {audit.claims_total} claims written, {audit.claims_rejected} rejected by the verifier · {modelName(audit.model)} ·{' '}
         {audit.latency_s.toFixed(1)} s
+        {audit.verifier && <> · verifier: {audit.verifier}</>}
         {audit.outcome && <> · inferred outcome: {audit.outcome}</>}
       </p>
 
@@ -35,7 +40,7 @@ function AuditDetail({ audit, closure }: { audit: AuditResult; closure: StaleClo
       <ClaimList claims={verified} emptyMessage="No verified claims." />
 
       <h3>Rejected claims (n={rejected.length})</h3>
-      <p className="muted">Claims the model wrote that did not match the PR's real data. They are dropped and counted as hallucinations.</p>
+      <p className="muted">Claims whose quote, author or date did not match the PR's real data (a failed citation, not always a fabrication). They are dropped before the verdict.</p>
       <ClaimList claims={rejected} emptyMessage="No rejected claims." />
 
       <h3>Reasons not to close</h3>
@@ -61,6 +66,7 @@ export default function AuditPage({
   closures: StaleClosure[]
   route: string
 }) {
+  const [filter, setFilter] = useState<Verdict | null>(null)
   const closureByKey = new Map(closures.map((c) => [auditKey(c), c]))
   const selectedKey = route.startsWith('/audit/') ? decodeURIComponent(route.slice('/audit/'.length)) : null
   const selected = selectedKey ? audits.find((a) => auditKey(a) === selectedKey) : undefined
@@ -74,11 +80,24 @@ export default function AuditPage({
   }
   if (selected) return <AuditDetail audit={selected} closure={closureByKey.get(auditKey(selected))} />
 
+  const shown = filter ? audits.filter((a) => a.verdict === filter) : audits
+  const count = (v: Verdict) => audits.filter((a) => a.verdict === v).length
+
   return (
     <section>
       <h2>Audited PRs (n={audits.length})</h2>
+      <div className="filters" role="group" aria-label="Filter by verdict">
+        <button type="button" aria-pressed={filter === null} onClick={() => setFilter(null)}>
+          All {audits.length}
+        </button>
+        {VERDICTS.map((v) => (
+          <button key={v} type="button" aria-pressed={filter === v} onClick={() => setFilter(v)}>
+            {v} {count(v)}
+          </button>
+        ))}
+      </div>
       <ul className="pr-list">
-        {audits.map((a) => (
+        {shown.map((a) => (
           <li key={auditKey(a)}>
             <PRCard {...cardProps(a, closureByKey.get(auditKey(a)))} href={`#/audit/${encodeURIComponent(auditKey(a))}`} />
           </li>

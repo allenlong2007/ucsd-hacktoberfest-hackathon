@@ -2,47 +2,67 @@
   "_fixture": true,
   "generated_at": "FAKE FIXTURE - not real results",
   "headline": {
-    "repos": [
-      "example/demo"
-    ],
-    "stale_closures": 300,
-    "wrongful": 42,
-    "wrongful_rate": 0.14
+    "repos": ["example/demo"],
+    "stale_closures": 42,
+    "wrongful": 5,
+    "wrongful_rate": 0.119,
+    "eligible_note": "FAKE: 17 newer closures excluded: their 180-day window isn't complete."
   },
   "approaches": [
     {
       "name": "Stale bot",
-      "n": 300,
+      "n": 42,
       "wrongful_caught": 0,
       "recall": 0.0,
       "precision": null,
-      "escalation_rate": 0.0
+      "escalation_rate": 0.0,
+      "wrongful_closed": 5,
+      "wrongful_escalated": 0
     },
     {
       "name": "Metadata heuristic",
-      "n": 300,
-      "wrongful_caught": 20,
-      "recall": 0.48,
-      "precision": 0.31,
-      "escalation_rate": 0.0
+      "n": 42,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "escalation_rate": 0.0,
+      "wrongful_closed": 5,
+      "wrongful_escalated": 0
     },
     {
-      "name": "Close Call (Gemma 4 + verifier)",
-      "n": 80,
-      "wrongful_caught": 15,
-      "recall": 0.6,
-      "precision": 0.5,
-      "escalation_rate": 0.2
+      "name": "Close Call (Gemma 4 26B)",
+      "n": 42,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "escalation_rate": 0.9,
+      "wrongful_closed": 0,
+      "wrongful_escalated": 5,
+      "model": "gemini:models/gemma-4-26b-a4b-it",
+      "claims_total": 100,
+      "claims_rejected": 3,
+      "avg_latency_s": 50.0
+    },
+    {
+      "name": "Close Call (Gemma 4 E2B local)",
+      "n": 42,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "escalation_rate": 0.93,
+      "wrongful_closed": 0,
+      "wrongful_escalated": 5,
+      "model": "ollama:gemma4:e2b",
+      "claims_total": 150,
+      "claims_rejected": 20,
+      "avg_latency_s": 20.0
     }
   ],
   "hallucination": {
-    "claims_total": 400,
-    "claims_rejected": 37
+    "claims_total": 250,
+    "claims_rejected": 23
   },
-  "gold_set": {
-    "n": 30,
-    "agreement_with_inferred_labels": 0.83
-  },
+  "gold_set": null,
   "notes": [
     "FAKE FIXTURE for UI development only."
   ]
