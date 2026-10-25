@@ -6,10 +6,15 @@ and fails it if a branch touches a folder it doesn't own.
 
 | Member | GitHub username | Branch | Owns folder | Scope |
 |--------|-----------------|--------|-------------|-------|
-| Allen (lead) | `allenlong2007` | `dev/frontend` | `frontend/` | UI, pages, components, styling |
+| Allen (lead), frontend agent 1 | `allenlong2007` | `dev/frontend` | `frontend/` **except** `frontend/src/components/` and `frontend/src/styles/` | App shell, pages, routing, API calls, `package.json` and build config |
+| Allen (lead), frontend agent 2 | `allenlong2007` | `dev/frontend-ui` | `frontend/src/components/`, `frontend/src/styles/` | Reusable UI components, design tokens, styling |
 | Lio | `liogular-hash` | `dev/backend` | `backend/` | API server, database, auth |
 | Nilesh | `nileshbehera` | `dev/ai` | `ai/` | Models, prompts, data processing |
 | Emmanuel | `EmmanuelR21-del` | `dev/infra` | `infra/` | Deployment, scripts, demo, docs |
+
+Allen runs two frontend agents at the same time, so `frontend/` is split between them:
+agent 1 never edits `components/` or `styles/`, and agent 2 edits nothing else. If agent 2
+needs a new npm package, it asks agent 1, which owns `package.json`.
 
 Change the scope column once you've picked a project. If you
 rename a folder or branch, also update `.github/ownership.json`. CI reads that file.
