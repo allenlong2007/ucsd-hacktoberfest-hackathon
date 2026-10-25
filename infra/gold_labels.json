@@ -1,0 +1,159 @@
+{
+  "n": 30,
+  "reviewers": 1,
+  "double_labeled": 5,
+  "agreement": "2/5",
+  "agreement_type": "same_reviewer_repeated_entries_not_independent",
+  "labels": [
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15221,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15226,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15866,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15879,
+      "human_label": "NOT_JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15880,
+      "human_label": "NOT_JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15971,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16002,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15243,
+      "human_label": "JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15854,
+      "human_label": "NOT_JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16178,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16177,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15436,
+      "human_label": "JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16175,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15972,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16229,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15365,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15850,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15421,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15877,
+      "human_label": "NOT_JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15288,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16205,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15281,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16020,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15944,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15265,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15344,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15970,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16157,
+      "human_label": "NOT_JUSTIFIED"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 15228,
+      "human_label": "UNCERTAIN"
+    },
+    {
+      "repo": "jestjs/jest",
+      "pr_number": 16242,
+      "human_label": "UNCERTAIN"
+    }
+  ]
+}
