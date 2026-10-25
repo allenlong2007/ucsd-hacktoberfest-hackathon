@@ -19,6 +19,7 @@ import random
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -32,10 +33,10 @@ SAMPLE_PATH = DATA / "sample" / "stale_closures_sample.jsonl"
 # k8s-ci-robot is left out on purpose: Prow closes a PR as k8s-ci-robot whenever anyone types
 # "/close", so its stale closes are caught by the k8s-triage-robot comment text instead.
 STALE_ACTORS = {"github-actions", "stale", "k8s-triage-robot"}
+# Bot wording only. Kept narrow on purpose: a human writing "closing this, it's stale-..." is not a stale-bot close.
 STALE_TEXT = re.compile(
     r"closed because it has not had recent activity|has been automatically closed|"
-    r"marked as stale|closing this (pr|pull request) (due to|because)[^.]*(inactiv|stale)|"
-    r"lifecycle/rotten|no activity", re.I)
+    r"stalled for \d+ days with no activity|lifecycle/rotten", re.I)
 WINDOW_DAYS = 180
 MIN_OVERLAP, MIN_JACCARD, TOP_K = 0.5, 0.4, 3
 MIN_WRONGFUL = 15
@@ -45,7 +46,7 @@ COMMENT = "id author { login } authorAssociation createdAt body"
 PR_QUERY = """
 query($owner: String!, $name: String!, $cursor: String) {
   repository(owner: $owner, name: $name) {
-    pullRequests(first: 50, after: $cursor, states: [%s], orderBy: {field: CREATED_AT, direction: DESC}) {
+    pullRequests(first: %d, after: $cursor, states: [%s], orderBy: {field: CREATED_AT, direction: DESC}) {
       pageInfo { hasNextPage endCursor }
       nodes {
         number title createdAt closedAt author { login }
@@ -83,11 +84,24 @@ def login(node):
     return ((node or {}).get("author") or (node or {}).get("actor") or {}).get("login") or ""
 
 
+def graphql_retry(query, tries=4, **variables):
+    """GitHub sometimes times out on heavy pages and returns a truncated body; retry those."""
+    for attempt in range(tries):
+        try:
+            return run_graphql(query, **variables)
+        except (RuntimeError, ValueError) as e:
+            if "rate limit" in str(e).lower() or attempt == tries - 1:
+                raise RuntimeError(str(e)) from e
+            wait = 3 * 2 ** attempt
+            print(f"  GitHub error ({str(e)[:80]}); retrying in {wait}s", file=sys.stderr)
+            time.sleep(wait)
+
+
 def paginate(query, repo, limit):
     owner, name = repo.split("/")
     cursor, n = None, 0
     while n < limit:
-        page = run_graphql(query, owner=owner, name=name, cursor=cursor)["repository"]["pullRequests"]
+        page = graphql_retry(query, owner=owner, name=name, cursor=cursor)["repository"]["pullRequests"]
         for node in page["nodes"]:
             yield node
             n += 1
@@ -98,9 +112,12 @@ def paginate(query, repo, limit):
         cursor = page["pageInfo"]["endCursor"]
 
 
-def is_stale_close(actor, close_comment):
-    return actor in STALE_ACTORS or actor.removesuffix("[bot]") in STALE_ACTORS or \
-        bool(STALE_TEXT.search(close_comment or ""))
+def is_stale_close(actor, close_comment, pr_author=""):
+    if actor in STALE_ACTORS or actor.removesuffix("[bot]") in STALE_ACTORS:
+        return True
+    if pr_author and actor == pr_author:  # authors closing their own PR are never stale closes
+        return False
+    return bool(STALE_TEXT.search(close_comment or ""))
 
 
 def find_close_comment(comments, closed_at):
@@ -121,7 +138,7 @@ def build_record(repo, node):
     for ev in node["closedEvents"]["nodes"]:
         actor = login(ev)
         cc = find_close_comment(comments, ev["createdAt"])
-        if is_stale_close(actor, cc["body"] if cc else ""):
+        if is_stale_close(actor, cc["body"] if cc else "", login(node)):
             closed_at, close_actor, close_comment = ev["createdAt"], actor, cc
             break
     else:
@@ -218,7 +235,7 @@ def collect(repo, args, sink):
     """Scan one repo; write records to sink as they're labeled. Returns (kept, scanned)."""
     kept, scanned = [], 0
     try:
-        for node in paginate(PR_QUERY % (args.states, COMMENT, COMMENT), repo, args.max):
+        for node in paginate(PR_QUERY % (args.page_size, args.states, COMMENT, COMMENT), repo, args.max):
             scanned += 1
             rec = build_record(repo, node)
             if rec:
@@ -271,6 +288,7 @@ def main():
     ap.add_argument("--repos", default="home-assistant/core,jestjs/jest")
     ap.add_argument("--max", type=int, default=1500, help="PRs scanned per repo")
     ap.add_argument("--states", default="CLOSED, OPEN", help="PR states to scan (OPEN finds reopened PRs)")
+    ap.add_argument("--page-size", type=int, default=20, help="PRs per GraphQL query (smaller avoids timeouts)")
     ap.add_argument("--merged-max", type=int, default=3000, help="merged PRs indexed per repo")
     ap.add_argument("--extra-repos", default=",".join(EXTRA_REPOS))
     ap.add_argument("--no-extra", action="store_true", help="never add extra repos")
