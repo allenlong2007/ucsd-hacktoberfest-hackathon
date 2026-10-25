@@ -51,3 +51,14 @@ export interface EvalSummary {
   gold_set?: { n: number; agreement_with_inferred_labels: number }
   notes: string[]
 }
+
+// Only the stale_closure fields the UI shows (PRCard metadata). The full shape is in CONTRACT.md.
+export interface StaleClosure {
+  _fixture?: boolean
+  repo: string
+  pr_number: number
+  title: string
+  author: string
+  created_at: string
+  closed_at: string
+}
