@@ -43,12 +43,8 @@ MIN_WRONGFUL = 15
 EXTRA_REPOS = ["pytorch/pytorch", "kubernetes/kubernetes"]  # stale-bot repos, used if too few wrongful
 
 COMMENT = "id author { login } authorAssociation createdAt body"
-PR_QUERY = """
-query($owner: String!, $name: String!, $cursor: String) {
-  repository(owner: $owner, name: $name) {
-    pullRequests(first: %d, after: $cursor, states: [%s], orderBy: {field: CREATED_AT, direction: DESC}) {
-      pageInfo { hasNextPage endCursor }
-      nodes {
+# Fields fetched for each PR; shared with fetch_pr.py.
+PR_FIELDS = """
         number title createdAt closedAt author { login }
         files(first: 100) { nodes { path additions deletions } }
         comments(first: 100) { totalCount nodes { %s } }
@@ -59,7 +55,13 @@ query($owner: String!, $name: String!, $cursor: String) {
           nodes { ... on ClosedEvent { createdAt actor { login } } } }
         reopenedEvents: timelineItems(itemTypes: [REOPENED_EVENT], first: 10) {
           nodes { ... on ReopenedEvent { createdAt actor { login } } } }
-      }
+""" % (COMMENT, COMMENT)
+PR_QUERY = """
+query($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(first: %d, after: $cursor, states: [%s], orderBy: {field: CREATED_AT, direction: DESC}) {
+      pageInfo { hasNextPage endCursor }
+      nodes { """ + PR_FIELDS + """ }
     }
   }
 }
@@ -128,23 +130,18 @@ def find_close_comment(comments, closed_at):
     return near[0] if near else None
 
 
-def build_record(repo, node):
-    """Turn a GraphQL PR node into a stale_closure record (no outcome yet), or None if not stale-closed."""
-    all_comments = {}
+def pr_comments(node):
+    """All fetched comments (first 100 plus the last 5), deduplicated and in time order."""
+    found = {}
     for c in node["comments"]["nodes"] + node["tail"]["nodes"]:
-        all_comments[c["id"]] = {"id": c["id"], "author": login(c), "author_association": c["authorAssociation"],
-                                 "created_at": c["createdAt"], "body": c["body"]}
-    comments = sorted(all_comments.values(), key=lambda c: c["created_at"])
-    for ev in node["closedEvents"]["nodes"]:
-        actor = login(ev)
-        cc = find_close_comment(comments, ev["createdAt"])
-        if is_stale_close(actor, cc["body"] if cc else "", login(node)):
-            closed_at, close_actor, close_comment = ev["createdAt"], actor, cc
-            break
-    else:
-        return None
+        found[c["id"]] = {"id": c["id"], "author": login(c), "author_association": c["authorAssociation"],
+                          "created_at": c["createdAt"], "body": c["body"]}
+    return sorted(found.values(), key=lambda c: c["created_at"])
+
+
+def snapshot(repo, node, comments, closed_at, close_actor, close_comment):
+    """The PR as visible at closed_at (contract fields up to linked_issues; no outcome)."""
     before = ts(closed_at)
-    reopened = [e["createdAt"] for e in node["reopenedEvents"]["nodes"] if ts(e["createdAt"]) > before]
     return {
         "repo": repo, "pr_number": node["number"], "title": node["title"], "author": login(node),
         "created_at": node["createdAt"], "closed_at": closed_at, "close_actor": close_actor,
@@ -158,10 +155,31 @@ def build_record(repo, node):
             {"number": i["number"],
              "state_at_close": "OPEN" if not i["closedAt"] or ts(i["closedAt"]) > before else "CLOSED"}
             for i in node["closingIssuesReferences"]["nodes"] if ts(i["createdAt"]) < before],
-        "outcome": "reopened" if reopened else "no_evidence",
-        "evidence": {"reopened_at": reopened[0] if reopened else None, "matched_pr": None,
-                     "file_overlap": None, "line_jaccard": None},
     }
+
+
+def find_stale_close(node, comments):
+    """(closed_at, actor, close_comment) of the first stale-bot close event, or None."""
+    for ev in node["closedEvents"]["nodes"]:
+        actor = login(ev)
+        cc = find_close_comment(comments, ev["createdAt"])
+        if is_stale_close(actor, cc["body"] if cc else "", login(node)):
+            return ev["createdAt"], actor, cc
+    return None
+
+
+def build_record(repo, node):
+    """Turn a GraphQL PR node into a stale_closure record (no redone_later yet), or None if not stale-closed."""
+    comments = pr_comments(node)
+    close = find_stale_close(node, comments)
+    if not close:
+        return None
+    rec = snapshot(repo, node, comments, *close)
+    reopened = [e["createdAt"] for e in node["reopenedEvents"]["nodes"] if ts(e["createdAt"]) > ts(close[0])]
+    rec["outcome"] = "reopened" if reopened else "no_evidence"
+    rec["evidence"] = {"reopened_at": reopened[0] if reopened else None, "matched_pr": None,
+                       "file_overlap": None, "line_jaccard": None}
+    return rec
 
 
 def file_overlap(a_paths, b_paths):
@@ -235,7 +253,7 @@ def collect(repo, args, sink):
     """Scan one repo; write records to sink as they're labeled. Returns (kept, scanned)."""
     kept, scanned = [], 0
     try:
-        for node in paginate(PR_QUERY % (args.page_size, args.states, COMMENT, COMMENT), repo, args.max):
+        for node in paginate(PR_QUERY % (args.page_size, args.states), repo, args.max):
             scanned += 1
             rec = build_record(repo, node)
             if rec:
