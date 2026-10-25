@@ -5,13 +5,17 @@ from urllib.error import HTTPError
 from unittest.mock import patch
 
 from ai.closecall.test_verdict import load_pr
-from run import call_model, gemini_models, resolve_verifier, request_json
+from run import call_model, gemini_models, resolve_verifier, request_json, parse_response
 
 
 ANSWER = {"claims": [], "summary": "Human review needed.", "reasons_not_to_close": []}
 
 
 class BackendTests(unittest.TestCase):
+    def test_literal_newline_in_quote_is_preserved_for_verifier(self):
+        text = '{"claims":[{"quote":"first\nsecond"}],"summary":"Review.","reasons_not_to_close":[]}'
+        self.assertEqual(parse_response(text)["claims"][0]["quote"], "first\nsecond")
+
     def test_nonfixture_cannot_fall_back_to_stub(self):
         with patch("run.importlib.import_module", side_effect=ModuleNotFoundError(name="verify")):
             with self.assertRaisesRegex(RuntimeError, "Real verifier required"):

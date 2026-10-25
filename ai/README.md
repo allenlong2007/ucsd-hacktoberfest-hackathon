@@ -43,7 +43,7 @@ python3 ai/eval/report.py /tmp/jest_sample.jsonl
 ```
 
 `--delay` defaults to two seconds between audit starts; `--workers` defaults to 1.
-Gemini HTTP 429 responses retry up to four times with exponential backoff and
+Gemini HTTP 429 responses retry up to five times with exponential backoff and
 respect a numeric `Retry-After` header. `--resume` preserves completed real audits
 for the same backend/model. The report checks complete, unique input coverage.
 For Python installations missing a CA bundle, set `SSL_CERT_FILE` to your system

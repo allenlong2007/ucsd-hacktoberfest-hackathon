@@ -54,7 +54,7 @@ def main():
                            for name, path in (("gemini", args.gemini), ("ollama", args.ollama))},
               "notes": ["redone_later labels are inferred and are not proof of a wrongful closure.",
                         "ESCALATE means human review, not an affirmative prediction of wrongful closure.",
-                        "Latency includes inference retries and rate-limit waits but excludes between-PR delay.",
+                        "Latency includes retries/backoff within successful audits; excludes prior failed attempts, scheduling, and between-PR delay.",
                         "Rejected claims measure citation verification failures, not necessarily fabricated content."]}
     args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))

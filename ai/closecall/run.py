@@ -34,19 +34,22 @@ def load_env() -> None:
 def request_json(url: str, payload=None, headers=None, timeout=600) -> dict:
     request = Request(url, data=None if payload is None else json.dumps(payload).encode(),
                       headers={"Content-Type": "application/json", **(headers or {})})
-    for attempt in range(5):
+    for attempt in range(6):
         try:
             with urlopen(request, timeout=timeout) as response:
                 return json.loads(response.read())
         except HTTPError as exc:
-            if exc.code == 429 and url.startswith("https://generativelanguage.googleapis.com/") and attempt < 4:
+            if exc.code == 429 and url.startswith("https://generativelanguage.googleapis.com/") and attempt < 5:
                 try:
                     retry_after = float(exc.headers.get("Retry-After", "0"))
                 except ValueError:
                     retry_after = 0
                 delay = max(retry_after, 2 ** (attempt + 1))
                 print(f"Gemini rate limit: retrying in {delay:g}s", file=sys.stderr)
-                time.sleep(delay)
+                while delay > 0:
+                    pause = min(delay, 60)
+                    time.sleep(pause)
+                    delay -= pause
                 continue
             # Do not include the authenticated URL (or the key) in errors/logs.
             raise RuntimeError(f"Model service returned HTTP {exc.code}") from None
@@ -75,7 +78,9 @@ def parse_response(text: str) -> dict:
     text = text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text)
-    result = json.loads(text)
+    # Models sometimes copy literal line breaks from a source quote into strings.
+    # Preserve those characters; the real verifier still checks the exact evidence.
+    result = json.loads(text, strict=False)
     if not isinstance(result, dict) or not isinstance(result.get("claims"), list) or not all(
         isinstance(claim, dict) for claim in result["claims"]
     ) or not isinstance(result.get("reasons_not_to_close"), list) or not isinstance(result.get("summary"), str):
@@ -86,7 +91,9 @@ def parse_response(text: str) -> dict:
 def call_model(prompt: str, model: str, backend: str, timeout=600) -> tuple[dict, float]:
     started = time.perf_counter()
     for attempt in range(2):
-        instruction = prompt + ("\nReturn valid JSON only; no markdown." if attempt else "")
+        instruction = prompt + ("\nReturn valid JSON only; no markdown. Escape quotation marks and "
+                                "newlines inside JSON strings. Use at most five claims, each quoting "
+                                "a short exact source substring of at most 200 characters." if attempt else "")
         if backend == "ollama":
             payload = {"model": model, "prompt": instruction, "stream": False,
                        "format": "json", "options": {"temperature": 0}}
@@ -260,6 +267,7 @@ def main() -> None:
     pending_records = iter(record for record in records
                            if (record["repo"], record["pr_number"]) not in completed)
     last_start = 0.0
+    failures = []
     with output.open("a" if args.resume else "w") as target, ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {}
         exhausted = False
@@ -277,12 +285,19 @@ def main() -> None:
             done, _ = wait(futures, return_when=FIRST_COMPLETED)
             for future in done:
                 record = futures.pop(future)
-                result = future.result()
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    failures.append((record["repo"], record["pr_number"]))
+                    print(f"Audit failed for {record['repo']}#{record['pr_number']}: {exc}", file=sys.stderr)
+                    continue
                 target.write(json.dumps(result) + "\n")
                 target.flush()
                 completed.add((record["repo"], record["pr_number"]))
                 print(f"{len(completed)}/{len(records)} {record['repo']}#{record['pr_number']}: "
                       f"{result['verdict']} ({result['latency_s']}s)", file=sys.stderr)
+    if failures:
+        raise RuntimeError(f"{len(failures)} audits failed; completed audits preserved. Rerun with --resume.")
 
 
 if __name__ == "__main__":
