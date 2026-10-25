@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -59,16 +60,39 @@ def verify_claims(pr: dict, claims: list[dict]) -> list[dict]:
 
 def verdict(pr: dict, claims: list[dict]) -> str:
     verified = [c for c in claims if c.get("verified") is True]
-    text = " ".join(str(c.get("quote", "")) for c in verified).lower()
-    security = any(word in text for word in ("security", "xss", "vulnerability", "cve"))
-    if security or any(c.get("supports") == "keep_open" and c.get("author_association") in
-                       {"MEMBER", "OWNER", "COLLABORATOR"} for c in verified):
-        return "ESCALATE" if security else "UNSUPPORTED"
-    if any(c.get("type") == "review" and c.get("state") == "APPROVED" for c in verified):
+    # Security is an escalation even when it appears only in metadata or a path.
+    security_pattern = re.compile(r"security|xss|vulnerab|cve|sanitiz|auth|csrf|injection", re.I)
+    paths = " ".join(str(item.get("path", "")) for item in pr.get("files", []))
+    if security_pattern.search(f"{pr.get('title', '')} {paths}"):
+        return "ESCALATE"
+    source_by_ref = {}
+    for item in pr.get("comments", []):
+        source_by_ref[("comment", str(item.get("id")))] = item
+    for item in pr.get("reviews", []):
+        source_by_ref[("review", str(item.get("id")))] = item
+    for item in pr.get("linked_issues", []):
+        source_by_ref[("issue", str(item.get("number")))] = item
+
+    # Only source metadata from the PR record is authoritative. Never trust
+    # author_association/state fields that a model may put into its claim.
+    sources = [(claim, source_by_ref.get((claim.get("type"), str(claim.get("ref")))))
+               for claim in verified]
+    if any(c.get("supports") == "keep_open" and source and
+           source.get("author_association") in {"MEMBER", "OWNER", "COLLABORATOR"}
+           for c, source in sources):
         return "UNSUPPORTED"
-    if any(c.get("type") == "issue" and c.get("state_at_close") == "OPEN" for c in verified):
+    if any(c.get("type") == "review" and source and source.get("state") == "APPROVED"
+           for c, source in sources):
         return "UNSUPPORTED"
-    if any(c.get("supports") == "close" and c.get("author") == pr.get("author") for c in verified):
+    if any(c.get("type") == "issue" and source and source.get("state_at_close") == "OPEN"
+           for c, source in sources):
+        return "UNSUPPORTED"
+    if any(c.get("supports") == "close" and source and
+           source.get("author_association") in {"MEMBER", "OWNER", "COLLABORATOR"}
+           for c, source in sources):
+        return "CONFIRMED"
+    if any(c.get("supports") == "close" and source and
+           source.get("author") == pr.get("author") for c, source in sources):
         return "CONFIRMED"
     return "ESCALATE"
 
