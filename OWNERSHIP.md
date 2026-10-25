@@ -6,12 +6,12 @@ and fails it if a branch touches a folder it doesn't own.
 
 | Member | GitHub username | Branch | Owns folder | Scope |
 |--------|-----------------|--------|-------------|-------|
-| Member 1 (lead) | `allenlong2007` | `dev/frontend` | `frontend/` | UI, pages, components, styling |
-| Member 2 | `TODO` | `dev/backend` | `backend/` | API server, database, auth |
-| Member 3 | `TODO` | `dev/ai` | `ai/` | Models, prompts, data processing |
-| Member 4 | `TODO` | `dev/infra` | `infra/` | Deployment, scripts, demo, docs |
+| Allen (lead) | `allenlong2007` | `dev/frontend` | `frontend/` | UI, pages, components, styling |
+| Lio | `liogular-hash` | `dev/backend` | `backend/` | API server, database, auth |
+| Nilesh | `nileshbehera` | `dev/ai` | `ai/` | Models, prompts, data processing |
+| Member 4 (joining later) | `TODO` | `dev/infra` | `infra/` | Deployment, scripts, demo, docs |
 
-Fill in the usernames and change the scope column once you've picked a project. If you
+Member 4 is not assigned yet. Nobody else works in `infra/` until they join. Change the scope column once you've picked a project. If you
 rename a folder or branch, also update `.github/ownership.json`. CI reads that file.
 
 ## Shared files (conflict hotspots)
