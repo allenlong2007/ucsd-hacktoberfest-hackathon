@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-10-25T23:05:13.777197+00:00",
+  "dataset_sha256": "f43caabd57c497dd71ad33146877903e1dc044dbb4fd8ded85417be07fb09399",
+  "backends": {
+    "gemini": {
+      "n": 42,
+      "models": [
+        "gemini:models/gemma-4-26b-a4b-it"
+      ],
+      "verdict_counts": {
+        "CONFIRMED": 2,
+        "UNSUPPORTED": 2,
+        "ESCALATE": 38
+      },
+      "claims_total": 101,
+      "claims_rejected": 0,
+      "average_latency_s": 53.948,
+      "redone_later": {
+        "n": 5,
+        "unsupported": 0,
+        "escalate": 5,
+        "unsupported_or_escalate": 5
+      }
+    },
+    "ollama": {
+      "n": 42,
+      "models": [
+        "ollama:gemma4:e2b"
+      ],
+      "verdict_counts": {
+        "CONFIRMED": 2,
+        "UNSUPPORTED": 1,
+        "ESCALATE": 39
+      },
+      "claims_total": 148,
+      "claims_rejected": 21,
+      "average_latency_s": 20.579,
+      "redone_later": {
+        "n": 5,
+        "unsupported": 0,
+        "escalate": 5,
+        "unsupported_or_escalate": 5
+      }
+    }
+  },
+  "notes": [
+    "redone_later labels are inferred and are not proof of a wrongful closure.",
+    "ESCALATE means human review, not an affirmative prediction of wrongful closure.",
+    "Latency includes retries/backoff within successful audits; excludes prior failed attempts, scheduling, and between-PR delay.",
+    "Rejected claims measure citation verification failures, not necessarily fabricated content."
+  ]
+}
