@@ -64,99 +64,89 @@ and `ai/out/audits_ollama.jsonl`. Labels: `infra/gold_set.csv`.
 
 ## Quick start
 
-There are three ways to try rePRieve, from least to most setup:
-
-| | What you'll see | You need | Time |
-|---|---|---|---|
-| **A. View results** | All 42 audits and the comparison chart | Node.js | 2 min |
-| **B. Run the tests** | The verifier and verdict logic passing | Python 3 | 1 min |
-| **C. Audit a PR live** | rePRieve judging a real PR from GitHub | Python 3, GitHub CLI, and a Gemini API key **or** Ollama | 5 min |
-
-Start by getting the code. **Run every command below from the repository root.**
+### 1. Get the code
 
 ```bash
 git clone https://github.com/allenlong2007/ucsd-hacktoberfest-hackathon.git
 cd ucsd-hacktoberfest-hackathon
 ```
 
-### A. View the results (no API key needed)
+Run everything below from this folder.
+
+### 2. See the results (2 minutes, no API key)
 
 ```bash
-cd frontend
-npm ci
-npm run dev
+cd frontend && npm ci && npm run dev
 ```
 
-Open the address it prints (usually http://localhost:5173).
+Open **http://localhost:5173/#/results** for the comparison chart, or
+**http://localhost:5173/#/audit** for all 42 audited PRs. Press `Ctrl+C` to stop, then `cd ..`.
 
-- **Audit** lists all 42 jestjs/jest PRs with their verdict, a one-line summary and the
-  claims that passed the fact-check.
-- **Results** compares rePRieve with the stale bot and the metadata heuristic.
+### 3. Audit a real pull request (5 minutes)
 
-Press `Ctrl+C` to stop, then `cd ..` to go back to the repository root.
-
-### B. Run the tests (no API key needed)
+**Set up once:**
 
 ```bash
-python3 backend/verifier/test_verify.py
-python3 backend/eval/test_baselines.py
-python3 -m unittest ai.closecall.test_backends ai.closecall.test_verdict ai.eval.test_score
+gh auth login                  # GitHub CLI, so rePRieve can read PRs
+cp ai/.env.example ai/.env     # then paste a free key from https://aistudio.google.com/apikey after GEMINI_API_KEY=
 ```
 
-Each command should end with `OK`.
-
-### C. Audit a real pull request live
-
-**One-time setup.** You need both of these:
-
-1. **The GitHub CLI**, installed and logged in: `gh auth login`
-2. **One way to run Gemma 4.** Choose either one:
-   - **Gemini API:** copy the example settings file, then paste your key after
-     `GEMINI_API_KEY=` in `ai/.env`. The file is gitignored, so the key is never committed.
-     ```bash
-     cp ai/.env.example ai/.env
-     ```
-   - **Fully local with Ollama:** install [Ollama](https://ollama.com), then in a separate
-     terminal run:
-     ```bash
-     ollama serve
-     ```
-     and in your main terminal:
-     ```bash
-     ollama pull gemma4:e2b
-     ```
-
-**Step 1: fetch the PR as it looked when the bot closed it.**
-This saves one JSON line with only the comments, reviews and linked issues from before the close.
+**Run it:**
 
 ```bash
 python3 backend/data/fetch_pr.py jestjs/jest 15880 > /tmp/pr.jsonl
-```
-
-**Step 2: audit it.** Run only the line for the option you set up.
-
-```bash
-# If you set up the Gemini API:
 python3 ai/closecall/run.py /tmp/pr.jsonl --backend gemini --output /tmp/audit.jsonl
-
-# If you set up Ollama:
-python3 ai/closecall/run.py /tmp/pr.jsonl --backend ollama --model gemma4:e2b --output /tmp/audit.jsonl
-```
-
-**Step 3: read the verdict.**
-
-```bash
 cat /tmp/audit.jsonl
 ```
 
-What to look for:
+You should see `"verdict": "ESCALATE"` with 3 verified claims: the author asked for review,
+nobody from the project answered, and the bot closed it anyway. To audit a different PR,
+replace `jestjs/jest 15880` with any `OWNER/REPO NUMBER`.
 
-- `verdict`: `CONFIRMED`, `UNSUPPORTED` or `ESCALATE`
-- `summary`: one sentence a maintainer can read
-- `claims`: each claim has `verified: true` or `false`, so you can see which citations
-  passed the fact-check and which were rejected
+> **No Gemini key?** Run Gemma 4 locally instead: install [Ollama](https://ollama.com), run
+> `ollama pull gemma4:e2b`, then use
+> `--backend ollama --model gemma4:e2b` in the second command.
+>
+> **Certificate error on a Mac?** Run `export SSL_CERT_FILE=/etc/ssl/cert.pem` first.
 
-**Try another PR:** in step 1, replace `jestjs/jest 15880` with any `OWNER/REPO NUMBER`.
+### 4. Use it as an agent skill
+
+Open your coding agent (Claude Code, Codex, Cursor and so on) **in this folder** and ask:
+
+> Read `ai/skill/reprieve/SKILL.md` and use it to audit jestjs/jest#15880.
+
+or, for a whole repository:
+
+> Read `ai/skill/reprieve/SKILL.md`, collect the stale-bot closures in jestjs/jest with
+> `--max 200`, audit them, and tell me which ones look wrongly closed.
+
+The agent runs the same commands and explains the verdicts. Point it at the skill file as
+shown; the skill isn't installed globally.
+
+### Repos to try
+
+| Repo | Why | |
+|---|---|---|
+| `jestjs/jest` | Our evaluation repo, so results are known. Try PR **15880** (ESCALATE) or **15228** (UNSUPPORTED) | ✅ tested |
+| `apache/spark` | Very large project that closes inactive PRs with a stale workflow | untested |
+| `kubernetes/kubernetes` | Closes inactive PRs through its triage bot (`lifecycle/rotten`) | untested |
+| `pytorch/pytorch` | Runs a stale-PR workflow | untested |
+
+For a whole repo, collect first (a few minutes), then audit:
+
+```bash
+python3 backend/data/fetch_stale_closures.py --repos apache/spark --max 200 --no-extra
+python3 ai/closecall/run.py backend/data/out/stale_closures.jsonl --backend gemini --workers 2 --resume --output /tmp/audits.jsonl
+```
+
+The first command prints how many stale-bot closures it found. **If it says 0, that repo
+doesn't use a stale bot we recognize**, so try another. Each audit takes about a minute.
+
+### Run the tests (optional, no API key)
+
+```bash
+python3 backend/verifier/test_verify.py && python3 backend/eval/test_baselines.py && python3 -m unittest ai.closecall.test_backends ai.closecall.test_verdict ai.eval.test_score
+```
 
 More detail: `ai/skill/reprieve/SKILL.md` (the agent skill), `backend/README.md`,
 `frontend/README.md`, and `infra/README_draft.md` (the full write-up).
