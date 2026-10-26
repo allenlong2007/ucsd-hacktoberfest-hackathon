@@ -1,3 +1,8 @@
+---
+name: close-call
+description: Audit whether a stale GitHub pull request closure is supported by verifiable evidence, using local or hosted Gemma and human escalation.
+---
+
 # Close Call
 
 Close Call audits whether a stale-bot pull-request closure was supported by the
@@ -11,7 +16,24 @@ comments on, or edits a GitHub pull request.
 3. Download the model with `ollama pull gemma4:e4b`.
 4. From the repository root, run the audit command below.
 
-## Audit one PR record
+## Live audit from GitHub
+
+Run from the repository root after the backend live fetcher is merged. Install
+GitHub CLI and authenticate with `gh auth login`. Set `GEMINI_API_KEY` in the
+ignored project `.env` or `ai/.env` file. The Gemini backend discovers an available
+Gemma 4 model; the real verifier is required for live records.
+
+```bash
+python3 backend/data/fetch_pr.py OWNER/REPO NUMBER > /tmp/pr.jsonl
+python3 ai/closecall/run.py /tmp/pr.jsonl --backend gemini
+```
+
+Check that fetching succeeded before running inference. For the video example,
+replace `OWNER/REPO NUMBER` with `jestjs/jest 15880`. If Lio already supplied
+`/tmp/pr.jsonl`, run only the second command. The result is written to
+`ai/out/audits.jsonl`; keep live outputs separate from the frozen evaluation files.
+
+## Audit saved PR records
 
 ```bash
 python3 ai/closecall/run.py backend/data/sample/stale_closures_sample.jsonl \

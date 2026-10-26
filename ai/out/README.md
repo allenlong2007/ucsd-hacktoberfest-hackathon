@@ -22,7 +22,22 @@ benchmark. Ollama temperature is 0; hosted Gemma uses service defaults.
 `no_evidence` does not prove closure was correct. `ESCALATE` means human review;
 only `UNSUPPORTED` is an affirmative finding that closure lacks support. Counts
 of rejected claims are citation-check failures, not necessarily fabrications.
-This run has no independently hand-checked gold labels.
+The inferred outcome labels are not themselves a hand-checked answer key; the
+separate human-finalized comparison below evaluates pre-close judgment instead.
+
+## Human-finalized answer-key comparison
+
+`eval_summary.json` now includes the 24 retained labels selected from
+`origin/dev/infra` at `0fd80b92d50b76d5b545c9ff3d0810f3896c2ecd`.
+Lio-only slots 7, 11, 15, 19, 23, and 27 are excluded. In mixed Lio/human slots,
+only the human label is retained (Allen on 3/17, Emmanuel on 30).
+No infra source file is copied into `ai/`. The user confirmed that Nilesh's labels
+were reviewed and finalized by humans after AI suggestions; this is a comparison
+against human-finalized labels, not a claim of a blinded, fully unassisted study.
+
+Gemini agrees on 15/24 (62.5%). The confusion matrix uses human labels as rows and
+Gemini verdicts as columns. Human-human agreement is 1/2 on the two double-labeled
+slots (10 and 24); this sample is too small to interpret.
 
 Any `fixture_*.jsonl` files in a working checkout are fake demonstration outputs,
 are excluded from this comparison, and are not part of these real-data results.

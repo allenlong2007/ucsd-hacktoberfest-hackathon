@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
+import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -17,6 +20,56 @@ NOTES = ["Labels inferred from later merges of near-identical changes",
          "One repository (jestjs/jest)",
          "Close Call is conservative: it escalates most closures to a human"]
 HUMAN_LABELS = {"UNSUPPORTED": "NOT_JUSTIFIED", "CONFIRMED": "JUSTIFIED", "ESCALATE": "UNCERTAIN"}
+GOLD_NOTE = "Answer key excludes 6 AI-assisted labels."
+REVIEWERS = {"Allen", "Emmanuel", "Nilesh"}
+EXCLUDED_SLOTS = {7, 11, 15, 19, 23, 27}
+
+
+def human_only_key(payload, rows):
+    """Select reviewer labels before looking at any model prediction."""
+    source = {(r["repo"], r["pr_number"]): r for r in payload["labels"]}
+    if len(rows) != 30 or {int(r["slot"]) for r in rows} != set(range(1, 31)):
+        raise ValueError("Expected exactly the assigned 30 gold slots")
+    labels, excluded, reviewers, double_labels = [], set(), set(), []
+    for row in rows:
+        slot = int(row["slot"])
+        key = (row["repo"], int(row["pr_number"]))
+        if key not in source:
+            raise ValueError("CSV PR is missing from gold_labels.json")
+        retained = [(row[f"reviewer_{i}"], row[f"label_{i}"])
+                    for i in (1, 2) if row[f"reviewer_{i}"] in REVIEWERS]
+        if not retained:
+            excluded.add(slot)
+            continue
+        if any(label not in HUMAN_LABELS.values() for _, label in retained):
+            raise ValueError("Retained reviewer has an invalid or unfinished label")
+        reviewers.update(reviewer for reviewer, _ in retained)
+        if len(retained) == 1:
+            label = retained[0][1]
+        else:
+            double_labels.append(retained[0][1] == retained[1][1])
+            label = row["human_label"]
+            if label not in {value for _, value in retained}:
+                raise ValueError("Adjudicated label is unsupported by retained human labels")
+        labels.append({"repo": key[0], "pr_number": key[1], "human_label": label})
+    if excluded != EXCLUDED_SLOTS or len(labels) != 24 or reviewers != REVIEWERS:
+        raise ValueError("Human-only selection does not match the assigned exclusions/reviewers")
+    agreement = f"{sum(double_labels)}/{len(double_labels)}"
+    if agreement != "1/2":
+        raise ValueError("Human-human double-label agreement changed; review the source labels")
+    return {"labels": labels, "reviewers": len(reviewers), "excluded_ai_assisted": len(excluded),
+            "agreement_reviewers": agreement + " (human-human double labels; too small to interpret)"}
+
+
+def score_human_only(payload, rows, gemini):
+    key = human_only_key(payload, rows)
+    result = gold_agreement(key, gemini)
+    predictions = {(r["repo"], r["pr_number"]): r["verdict"] for r in gemini}
+    confusion = {label: {verdict: 0 for verdict in HUMAN_LABELS} for label in HUMAN_LABELS.values()}
+    for row in key["labels"]:
+        confusion[row["human_label"]][predictions[(row["repo"], row["pr_number"])]] += 1
+    result.update(reviewers=key["reviewers"], excluded_ai_assisted=key["excluded_ai_assisted"], confusion=confusion)
+    return result
 
 
 def gold_agreement(payload, gemini):
@@ -120,7 +173,7 @@ def validate_summary(result):
         for key in ("recall", "precision", "escalation_rate"):
             if row[key] is not None and not 0 <= row[key] <= 1:
                 raise ValueError("Metric must be a rate or null")
-    if result["notes"] != NOTES:
+    if result["notes"] not in (NOTES, NOTES + [GOLD_NOTE]):
         raise ValueError("Unexpected evaluation notes")
     if result["gold_set"] is not None:
         gold = result["gold_set"]
@@ -129,6 +182,17 @@ def validate_summary(result):
         matches, total = map(int, gold["close_call_agreement"].split("/"))
         if total != gold["n"] or not 0 <= matches <= total:
             raise ValueError("Invalid human/model agreement denominator")
+        if "confusion" in gold:
+            matrix = gold["confusion"]
+            if set(matrix) != set(HUMAN_LABELS.values()) or any(set(row) != set(HUMAN_LABELS) for row in matrix.values()):
+                raise ValueError("Confusion rows must be human labels and columns Gemini verdicts")
+            cells = [value for row in matrix.values() for value in row.values()]
+            if any(type(value) is not int or value < 0 for value in cells) or sum(cells) != total:
+                raise ValueError("Confusion counts must sum to the gold denominator")
+            if sum(matrix[label][verdict] for verdict, label in HUMAN_LABELS.items()) != matches:
+                raise ValueError("Confusion diagonal disagrees with close_call_agreement")
+            if gold["n"] != 24 or gold["reviewers"] != 3 or gold["excluded_ai_assisted"] != 6 or GOLD_NOTE not in result["notes"]:
+                raise ValueError("Gold provenance or exclusion note is missing")
 
 
 def main():
@@ -139,10 +203,23 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "ai/out/eval_summary.json")
     parser.add_argument("--as-of", default="2026-10-25")
     parser.add_argument("--gold", type=Path, default=ROOT / "infra/gold_labels.json")
+    parser.add_argument("--gold-csv", type=Path, default=ROOT / "infra/gold_set.csv")
+    parser.add_argument("--gold-ref", help="Read infra gold JSON/CSV directly from a Git ref without copying files")
     args = parser.parse_args()
     result = build_summary(read_jsonl(args.input), read_jsonl(args.gemini), read_jsonl(args.ollama), args.as_of)
-    if args.gold.exists():
-        result["gold_set"] = gold_agreement(json.loads(args.gold.read_text()), read_jsonl(args.gemini))
+    if args.gold_ref:
+        payload = json.loads(subprocess.check_output(
+            ["git", "show", f"{args.gold_ref}:infra/gold_labels.json"], cwd=ROOT, text=True))
+        csv_text = subprocess.check_output(
+            ["git", "show", f"{args.gold_ref}:infra/gold_set.csv"], cwd=ROOT, text=True)
+        result["gold_set"] = score_human_only(payload, list(csv.DictReader(io.StringIO(csv_text))), read_jsonl(args.gemini))
+        result["notes"].append(GOLD_NOTE)
+    elif args.gold.exists():
+        if not args.gold_csv.exists():
+            raise ValueError("Human-only scoring requires reviewer-specific gold_set.csv")
+        result["gold_set"] = score_human_only(json.loads(args.gold.read_text()),
+            list(csv.DictReader(io.StringIO(args.gold_csv.read_text()))), read_jsonl(args.gemini))
+        result["notes"].append(GOLD_NOTE)
     validate_summary(result)
     args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     print(json.dumps(result, indent=2, allow_nan=False))

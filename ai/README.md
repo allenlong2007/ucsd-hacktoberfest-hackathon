@@ -59,11 +59,20 @@ This writes `ai/out/eval_summary.json` per CONTRACT.md section 4. Verdict metric
 include only closures at least 180 days before 2026-10-25; claims and latency use
 all 42 audits. The heuristic is imported from `backend/eval/baselines.py`.
 
-`gold_set` is null until `infra/gold_labels.json` exists. Rerunning the command
-then scores `human_label` against Gemini using the three-way contract mapping.
-Supported gold input is a list of final consensus rows with `repo`, `pr_number`,
-and `human_label`, or an object containing that list in `labels` and optional
-`agreement_reviewers`. Missing `repo` defaults to `jestjs/jest`; duplicate PRs,
-unknown labels, and unaudited PRs are rejected. The scorer never manufactures
-human labels or reviewer agreement. If infra uses a different schema, agree on
-that schema before adapting the loader.
+`gold_set` is null until infra's gold JSON and reviewer CSV are available. To use
+the infra branch before it merges, without copying its files into `ai/`:
+
+```sh
+git fetch origin dev/infra
+python3 ai/eval/score.py --gold-ref origin/dev/infra
+```
+
+The scorer selects Allen, Emmanuel, and Nilesh's finalized reviewer columns from
+`gold_set.csv`, not the previously mixed `human_label` aggregates. It keeps Allen's
+label_2 for slot 3, Allen's label_1 for slot 17, and Emmanuel's label_1 for slot 30.
+Slots 7, 11, 15, 19, 23, and 27 have only AI-assisted labels and are excluded.
+The remaining 24 PRs are compared to Gemini using the three-way contract mapping.
+Human-human agreement is recomputed from the two retained double-labeled slots;
+it is too small a sample to interpret. Confusion rows are human labels; columns
+are Gemini verdicts. No `agent_label` or rationale field is used as ground truth.
+Missing or inconsistent slots, unknown labels, and duplicate PRs are rejected.
