@@ -1,65 +1,161 @@
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { HeadlineStat, ResultsChart } from '../components'
-import type { EvalSummary } from '../types'
+import { modelName } from '../modelNames'
+import type { Approach, EvalSummary } from '../types'
 
 function pct(x: number | null | undefined): string {
   return x == null ? '—' : `${(x * 100).toFixed(0)}%`
 }
 
+// Main comparison: how many of the wrongful closures each approach would let close. Lower is better.
+function LetThrough({ approaches, wrongful }: { approaches: Approach[]; wrongful: number }) {
+  const rows = approaches.filter((a) => a.wrongful_closed != null)
+  if (rows.length === 0) return null
+  const data = rows.map((a) => ({ name: a.name, closed: a.wrongful_closed!, label: `${a.wrongful_closed} of ${wrongful}` }))
+  const height = Math.max(200, rows.length * 64)
+
+  return (
+    <section className="let-through">
+      <h2>Wrongful closures let through</h2>
+      <p className="muted">
+        Out of the {wrongful} closures labeled wrongful (inferred). Lower is better: every one of these is wanted work
+        that gets closed.
+      </p>
+      <div className="chart" role="img" aria-label={data.map((d) => `${d.name}: ${d.label} let through`).join('; ')}>
+        <ResponsiveContainer width="100%" height={height}>
+          <BarChart data={data} layout="vertical" margin={{ top: 4, right: 72, bottom: 4, left: 8 }}>
+            <CartesianGrid horizontal={false} stroke="var(--cc-border, #ddd)" />
+            <XAxis type="number" domain={[0, Math.max(wrongful, 1)]} ticks={wrongful <= 10 ? Array.from({ length: wrongful + 1 }, (_, i) => i) : undefined} allowDecimals={false} tick={{ fill: 'var(--cc-muted, #666)' }} />
+            <YAxis type="category" dataKey="name" width={190} tick={{ fill: 'var(--cc-text, #111)', fontSize: 14 }} />
+            <Bar dataKey="closed" fill="var(--cc-unsupported, #b91c1c)" isAnimationActive={false}>
+              <LabelList dataKey="label" position="right" fill="var(--cc-text, #111)" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th>Let through</th>
+              <th>Wrongful sent to a human</th>
+              <th>All PRs sent to a human</th>
+              <th>n</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((a) => (
+              <tr key={a.name}>
+                <td>{a.name}</td>
+                <td>
+                  {a.wrongful_closed} of {wrongful}
+                </td>
+                <td>{a.wrongful_escalated == null ? '—' : `${a.wrongful_escalated} of ${wrongful}`}</td>
+                <td>{pct(a.escalation_rate)}</td>
+                <td>{a.n}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">"Sent to a human" means ESCALATE: Close Call advises a person to review, it never closes or reopens anything.</p>
+    </section>
+  )
+}
+
+function FactChecker({ summary }: { summary: EvalSummary }) {
+  const models = summary.approaches.filter((a) => a.model && a.claims_total != null)
+  const { hallucination } = summary
+  if (models.length === 0 && !hallucination) return null
+
+  return (
+    <section className="fact-checker">
+      <h2>Fact-checker</h2>
+      <p className="muted">Every claim the model writes is checked against the PR's real comments, reviews and issues. Claims that don't match are thrown out before the verdict.</p>
+      <div className="fact-grid">
+        {models.map((a) => (
+          <div className="fact-item" key={a.name}>
+            <div className="fact-model">{modelName(a.model!)}</div>
+            <div className="fact-number">
+              {a.claims_rejected ?? 0} <span>of {a.claims_total}</span>
+            </div>
+            <div>invented claims caught</div>
+            {a.avg_latency_s != null && <div className="muted">avg {a.avg_latency_s.toFixed(1)} s per PR · n={a.n} PRs</div>}
+          </div>
+        ))}
+      </div>
+      {models.length === 0 && hallucination && (
+        <p>
+          The verifier rejected <strong>{hallucination.claims_rejected}</strong> of {hallucination.claims_total} claims
+          (n={hallucination.claims_total}).
+        </p>
+      )}
+      <p className="muted">
+        A rejected claim is one whose quote, author or date didn't match the PR data. That's a failed citation, not
+        always a fabrication. Latencies come from different hardware and settings, so they aren't a controlled speed test.
+      </p>
+    </section>
+  )
+}
+
 export default function ResultsPage({ summary }: { summary: EvalSummary }) {
-  const { headline, approaches, hallucination, gold_set } = summary
-  const hallucinationRate = hallucination.claims_total > 0 ? hallucination.claims_rejected / hallucination.claims_total : null
+  const { headline, approaches, gold_set } = summary
 
   return (
     <section>
       <HeadlineStat headline={headline} _fixture={summary._fixture} />
+      {headline.eligible_note && <p className="muted eligible-note">{headline.eligible_note}</p>}
 
       <p className="note">
         Labels are inferred: a closure counts as wrongful if the PR was later reopened or a near-identical change was
         merged within 180 days. The model never sees these labels.
       </p>
 
-      <ResultsChart approaches={approaches} _fixture={summary._fixture} />
+      <LetThrough approaches={approaches} wrongful={headline.wrongful} />
 
-      {/* ResultsChart's table covers n, recall and precision; this one adds the other plan metrics. */}
-      <h3>All metrics</h3>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Approach</th>
-              <th>n</th>
-              <th>Wrongful closures caught</th>
-              <th>Recall</th>
-              <th>Precision (UNSUPPORTED)</th>
-              <th>Escalation rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {approaches.map((a) => (
-              <tr key={a.name}>
-                <td>{a.name}</td>
-                <td>{a.n}</td>
-                <td>{a.wrongful_caught}</td>
-                <td>{pct(a.recall)}</td>
-                <td>{pct(a.precision)}</td>
-                <td>{pct(a.escalation_rate)}</td>
+      <FactChecker summary={summary} />
+
+      <details className="more-metrics">
+        <summary>More metrics: recall and precision of UNSUPPORTED</summary>
+        <ResultsChart approaches={approaches} _fixture={summary._fixture} />
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Approach</th>
+                <th>n</th>
+                <th>Wrongful closures caught (UNSUPPORTED)</th>
+                <th>Recall</th>
+                <th>Precision</th>
+                <th>Escalation rate</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <h2>Hallucinated claims caught</h2>
-      <p>
-        The verifier rejected <strong>{hallucination.claims_rejected}</strong> of {hallucination.claims_total} claims
-        the model wrote ({pct(hallucinationRate)}, n={hallucination.claims_total}). Rejected claims never count toward a
-        verdict.
-      </p>
+            </thead>
+            <tbody>
+              {approaches.map((a) => (
+                <tr key={a.name}>
+                  <td>{a.name}</td>
+                  <td>{a.n}</td>
+                  <td>{a.wrongful_caught}</td>
+                  <td>{pct(a.recall)}</td>
+                  <td>{pct(a.precision)}</td>
+                  <td>{pct(a.escalation_rate)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
 
       {gold_set && (
-        <p className="muted">
-          Hand-checked gold set: n={gold_set.n}, agreement with inferred labels {pct(gold_set.agreement_with_inferred_labels)}.
-        </p>
+        <section>
+          <h2>Hand-checked gold set</h2>
+          <p>
+            n={gold_set.n}, agreement with inferred labels {pct(gold_set.agreement_with_inferred_labels)}
+            {gold_set.agreement_reviewers && <> · reviewers agreed {gold_set.agreement_reviewers}</>}
+            {gold_set.close_call_agreement && <> · Close Call agreed {gold_set.close_call_agreement}</>}
+          </p>
+        </section>
       )}
 
       {summary.notes.length > 0 && (
