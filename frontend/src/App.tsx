@@ -44,7 +44,7 @@ export default function App() {
       )}
       <header className="app-header">
         <a className="brand" href="#/audit">
-          Close Call
+          rePRieve
         </a>
         <span className="tagline">Is closing this stale PR actually justified?</span>
         <nav>

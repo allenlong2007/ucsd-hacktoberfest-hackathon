@@ -1,11 +1,11 @@
-# Close Call — Devpost draft
+# rePRieve — Devpost draft
 
 Draft only. Replace every bracketed field with verified information before
 submission. Evaluation results below are sourced from main; video, eligibility,
 and submission completion still require confirmation.
 
 ## Project name
-Close Call
+rePRieve
 
 ## Selected prize tracks
 
@@ -33,7 +33,7 @@ is ambiguous, incomplete, conflicting, or security-sensitive. It advises maintai
 and takes no action on GitHub.
 
 ## How we built it
-Close Call runs Gemma 4 locally through Ollama (`gemma4:e2b`) or through the
+rePRieve runs Gemma 4 locally through Ollama (`gemma4:e2b`) or through the
 Gemini API (`gemma-4-26b-a4b-it`). Committed audits cover both backends; the
 planned live demo uses the Gemini API.
 
@@ -54,7 +54,7 @@ from three team members; assisted entries are excluded and uncertainty is retain
 
 Source: `ai/out/eval_summary.json` at `main` commit `9f304172d22a70866e619a749a5f183adb17e613`
 (generated `2026-10-26T00:05:06.437978+00:00`), plus `infra/gold_summary.md`.
-On the 24 human-labeled PRs, Close Call matched the human label on 15. On the 7 PRs where humans were confident, Close Call escalated all 7 and never contradicted a human. Its only 2 confident verdicts came on PRs that humans rated uncertain.
+On the 24 human-labeled PRs, rePRieve matched the human label on 15. On the 7 PRs where humans were confident, rePRieve escalated all 7 and never contradicted a human. Its only 2 confident verdicts came on PRs that humans rated uncertain.
 
 | Human label | UNSUPPORTED | CONFIRMED | ESCALATE |
 | --- | ---: | ---: | ---: |
@@ -65,13 +65,13 @@ On the 24 human-labeled PRs, Close Call matched the human label on 15. On the 7 
 Rows are human labels; columns are hosted Gemma 4 verdicts via the Gemini API.
 The label mapping is NOT_JUSTIFIED ↔ UNSUPPORTED, JUSTIFIED ↔ CONFIRMED,
 UNCERTAIN ↔ ESCALATE. This is label agreement, not accuracy. On the confident
-human cases, Close Call abstained rather than making an opposite confident call;
+human cases, rePRieve abstained rather than making an opposite confident call;
 it did not reproduce those human decisions. This is not a claim of error-free
 classification. Human-human agreement is 1 of 2, too small to interpret.
 
 
 **Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
-under the inferred later-redo label. The stale bot let all 5 close; Close Call
+under the inferred later-redo label. The stale bot let all 5 close; rePRieve
 approved none of them and sent all 5 to a human.** These are historical replay
 results, not actions taken on GitHub or proof of maintainer intent.
 

@@ -1,6 +1,6 @@
-# Close Call: build plan (3:00 PM to 6:30 PM)
+# rePRieve: build plan (3:00 PM to 6:30 PM)
 
-**One line:** before a stale bot closes someone's pull request, Close Call checks whether
+**One line:** before a stale bot closes someone's pull request, rePRieve checks whether
 closing it is actually justified, using evidence that is verified against the PR's real data.
 
 ## The core task (read this first)
@@ -8,7 +8,7 @@ closing it is actually justified, using evidence that is verified against the PR
 Input: a PR that a stale bot closed, using **only what was visible at the moment it closed**
 (the diff, comments, reviews and linked issues up to `closed_at`).
 
-Close Call outputs one verdict:
+rePRieve outputs one verdict:
 - `CONFIRMED`: closing was justified (the author abandoned it, it was superseded, or the
   maintainers rejected it), with verified evidence.
 - `UNSUPPORTED`: there is evidence the work was still wanted (a maintainer asked for it, an
@@ -39,7 +39,7 @@ time which closures will turn out wrong?
 |---|---|
 | Stale bot (today's practice) | closes everything, so it misses every wrongful closure |
 | Metadata heuristic | flags as wanted if there was an approving review, a maintainer comment, or author activity in the last 30 days |
-| Gemma 4 + verifier (Close Call) | verified claims |
+| Gemma 4 + verifier (rePRieve) | verified claims |
 
 Metrics, on all labeled closures plus a 30-PR hand-checked gold set:
 - **Wrongful closures caught** (recall on wrongful)
@@ -57,9 +57,9 @@ Report sample sizes. Call the labels "inferred". No claims beyond the data.
 | 3:00–3:10 | pull `main`, read this file and `shared/CONTRACT.md` | same | same | same | same |
 | 3:10–4:00 | `fetch_stale_closures.py` (local Claude Code, Opus). Second agent: `backend/verifier/` | Ollama + Gemma 4 E4B running; claim prompt working on `shared/fixtures/` | app shell, 2 pages (Audit, Results) on fixtures | VerdictBadge, ClaimList, PRCard, ResultsChart, HeadlineStat | README draft, Devpost draft, **ask organizers whether local Gemma counts for Best Use of Gemma 4** |
 | **4:00** | **CHECKPOINT 1:** sample data pushed with counts. If fewer than 15 wrongful closures, add repos or use the fallback | Gemma returns valid claims JSON | pages render fixtures | components done | gold-set labeling sheet ready |
-| 4:00–5:15 | verifier finished and tested; `backend/eval/baselines.py` | run Close Call on 60–100 PRs → `ai/out/audits.jsonl`; metrics → `ai/out/eval_summary.json` | swap fixtures for real files | polish, dark mode, mobile | hand-label 30 gold PRs with Nilesh; record a draft demo video |
+| 4:00–5:15 | verifier finished and tested; `backend/eval/baselines.py` | run rePRieve on 60–100 PRs → `ai/out/audits.jsonl`; metrics → `ai/out/eval_summary.json` | swap fixtures for real files | polish, dark mode, mobile | hand-label 30 gold PRs with Nilesh; record a draft demo video |
 | **5:15** | **CHECKPOINT 2:** real numbers exist. Freeze scope | | | | |
-| 5:15–5:45 | everyone opens a PR into `main`, Allen merges. `ai/skill/close-call/SKILL.md` is final | | | | |
+| 5:15–5:45 | everyone opens a PR into `main`, Allen merges. `ai/skill/reprieve/SKILL.md` is final | | | | |
 | **5:45** | **CODE FREEZE.** Only bug fixes after this | | | | |
 | 5:45–6:15 | rehearse the 3-minute demo, final video, Devpost submitted **by 6:15** | | | | |
 | 6:15–6:30 | buffer. Don't start anything new | | | | |
@@ -77,6 +77,6 @@ the same evaluation. Smaller, but still honest.
 1. Problem plus headline number (30 s)
 2. Live audit of 3 PRs: CONFIRMED, UNSUPPORTED (shows a hallucinated claim being rejected),
    ESCALATE (60 s)
-3. Results table: stale bot vs heuristic vs Close Call (45 s)
+3. Results table: stale bot vs heuristic vs rePRieve (45 s)
 4. Install it as a skill: one command, local Gemma, Apache 2.0 (30 s)
 5. Limits: inferred labels, small n, it advises and never acts (15 s)

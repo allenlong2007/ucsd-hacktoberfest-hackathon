@@ -27,7 +27,7 @@
       "escalation_rate": 0.0
     },
     {
-      "name": "Close Call (Gemma 4 + verifier)",
+      "name": "rePRieve (Gemma 4 + verifier)",
       "n": 80,
       "wrongful_caught": 15,
       "recall": 0.6,

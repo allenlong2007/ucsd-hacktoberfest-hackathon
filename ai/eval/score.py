@@ -18,7 +18,7 @@ from backend.eval.baselines import WRONGFUL, heuristic
 VERDICTS = {"CONFIRMED", "UNSUPPORTED", "ESCALATE"}
 NOTES = ["Labels inferred from later merges of near-identical changes",
          "One repository (jestjs/jest)",
-         "Close Call is conservative: it escalates most closures to a human"]
+         "rePRieve is conservative: it escalates most closures to a human"]
 HUMAN_LABELS = {"UNSUPPORTED": "NOT_JUSTIFIED", "CONFIRMED": "JUSTIFIED", "ESCALATE": "UNCERTAIN"}
 GOLD_NOTE = "Answer key excludes 6 AI-assisted labels."
 REVIEWERS = {"Allen", "Emmanuel", "Nilesh"}
@@ -133,7 +133,7 @@ def build_summary(records, gemini, ollama, as_of="2026-10-25"):
     approaches = [approach("Stale bot", eligible, stale),
                   approach("Metadata heuristic", eligible, metadata)]
     for name, audits, stats in zip(
-            ("Close Call: Gemma 4 26B (Gemini API)", "Close Call: Gemma 4 E2B (local)"),
+            ("rePRieve: Gemma 4 26B (Gemini API)", "rePRieve: Gemma 4 E2B (local)"),
             (gemini, ollama), models):
         if len(stats["models"]) != 1:
             raise ValueError("Expected exactly one model per backend")
@@ -164,7 +164,7 @@ def validate_summary(result):
     for row in result["approaches"]:
         required = {"name", "n", "wrongful_closed", "wrongful_escalated", "wrongful_caught",
                     "recall", "precision", "escalation_rate"}
-        if row["name"].startswith("Close Call:"):
+        if row["name"].startswith("rePRieve:"):
             required |= {"model", "claims_total", "claims_rejected", "avg_latency_s"}
         if set(row) != required or row["n"] != headline["stale_closures"]:
             raise ValueError("Invalid approach fields or eligibility denominator")

@@ -1,4 +1,4 @@
-# Close Call — final three-minute demo
+# rePRieve — final three-minute demo
 
 Prepared script only; no video recorded by this agent. Emmanuel records, uploads
 unlisted to YouTube and submits the Devpost entry with all four teammates and both
@@ -8,12 +8,12 @@ Open-Source AI and Best Use of Gemma 4 selected. Confirm final track requirement
 
 “Inactivity is not proof that a contribution is unwanted. In 25 stale-bot closures
 in Jest with complete follow-up windows, 5 were later redone: 20%, under our inferred
-label definition. Close Call checks evidence before recommending closure.”
+label definition. rePRieve checks evidence before recommending closure.”
 Show jestjs/jest, the sample size, inferred-label caveat and 180-day eligibility.
 
 ## 0:25–1:20 — Live jest#15880
 
-Lio fetches the PR; Nilesh runs Close Call via the Gemini API, using their working
+Lio fetches the PR; Nilesh runs rePRieve via the Gemini API, using their working
 authenticated terminals. From the repository root:
 
 ```bash
@@ -36,13 +36,13 @@ implemented. Human review is required; no_evidence does not prove justified clos
 
 ## 1:55–2:35 — Results page
 
-Stale bot let all 5 inferred wrongful closures through; Close Call approved 0 and
+Stale bot let all 5 inferred wrongful closures through; rePRieve approved 0 and
 escalated all 5. Both models escalate 88% of the 25 eligible cases, so review burden
 remains high. These escalations are not positive UNSUPPORTED detections.
 The local model's verifier rejected 21 of 148 citations across all 42 audits;
 these are citation failures, not proof of fabrication.
 
-On 24 human-labeled PRs, hosted Close Call matched 15 labels. All 7 confident human
+On 24 human-labeled PRs, hosted rePRieve matched 15 labels. All 7 confident human
 cases were escalated. Its 2 confident verdicts were on human-uncertain cases.
 Describe agreement, never accuracy; show the confusion table if time permits.
 Only 2 human-human pairs remain, with 1 agreement: too small to interpret.
@@ -52,7 +52,7 @@ Only 2 human-human pairs remain, with 1 agreement: too small to interpret.
 “One repository, small n, inferred later-event labels and substantial escalation
 limit our conclusions. Lio's assisted labels are excluded from the answer key;
 Emmanuel saw AI suggestions. Matching a quote does not settle interpretation.
-Close Call advises, never acts.”
+rePRieve advises, never acts.”
 
 ## Recording and submission
 

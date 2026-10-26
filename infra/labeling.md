@@ -45,7 +45,7 @@ Review timestamps remain blank because actual review times were not provided.
 Human-human agreement: 1 of 2 (too small to interpret), on slots 10 and 24 only.
 The export `infra/gold_labels.json` contains 24 PRs, 3 human-source reviewers and
 2 double-human slots; assisted entries are not exported as answer-key labels.
-Score Close Call against human_label using UNSUPPORTED ↔ NOT_JUSTIFIED,
+Score rePRieve against human_label using UNSUPPORTED ↔ NOT_JUSTIFIED,
 CONFIRMED ↔ JUSTIFIED, ESCALATE ↔ UNCERTAIN. Nilesh owns the evaluation code and
 `eval_summary.json`; infra does not edit his files.
 

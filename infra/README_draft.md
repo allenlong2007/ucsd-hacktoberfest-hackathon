@@ -1,4 +1,4 @@
-# Close Call — README draft
+# rePRieve — README draft
 
 Status: README draft for Allen to incorporate through PR #16. The merged main
 checkout contains the collector, verifier, AI runner, evaluation and viewer.
@@ -8,7 +8,7 @@ task did not rerun the model evaluation.
 ## The problem
 
 Inactivity is not proof that a contribution is unwanted. Stale bots can close pull
-requests while maintainers still want the work. Close Call asks whether closure is
+requests while maintainers still want the work. rePRieve asks whether closure is
 justified, and shows evidence a maintainer can inspect before making a decision.
 
 ## How it works
@@ -26,7 +26,7 @@ justified, and shows evidence a maintainer can inspect before making a decision.
    - `ESCALATE`: insufficient, conflicting, or security-sensitive evidence needs a human.
 
 A matching quote establishes that a source exists; it does not prove the model's
-interpretation is correct. Close Call advises. It does not close, reopen, merge,
+interpretation is correct. rePRieve advises. It does not close, reopen, merge,
 comment on PRs, or execute code from them.
 
 ## Setup
@@ -79,7 +79,7 @@ ollama list
 ollama run gemma4:e2b 'Return a short greeting.'
 ```
 
-The greeting checks local model execution only. It does not validate Close Call's
+The greeting checks local model execution only. It does not validate rePRieve's
 claim schema, verifier, or evaluation. Use the merged runner from the repository root, with working GitHub API access
 and a Gemini API key configured as documented in `ai/README.md`:
 
@@ -88,7 +88,7 @@ python3 backend/data/fetch_pr.py jestjs/jest 15880 > /tmp/close-call-pr.jsonl
 python3 ai/closecall/run.py /tmp/close-call-pr.jsonl --backend gemini --output /tmp/close-call-audit.jsonl
 ```
 
-The skill instructions are in `ai/skill/close-call/SKILL.md`. These commands are
+The skill instructions are in `ai/skill/reprieve/SKILL.md`. These commands are
 transcribed from the merged CLI interfaces; this documentation task has not run
 a live authenticated model request.
 
@@ -123,7 +123,7 @@ counts are documented in `infra/gold_summary.md` and `infra/labeling.md`.
 
 Source: `ai/out/eval_summary.json` at `main` commit `9f304172d22a70866e619a749a5f183adb17e613`
 (generated `2026-10-26T00:05:06.437978+00:00`), plus `infra/gold_summary.md`.
-On the 24 human-labeled PRs, Close Call matched the human label on 15. On the 7 PRs where humans were confident, Close Call escalated all 7 and never contradicted a human. Its only 2 confident verdicts came on PRs that humans rated uncertain.
+On the 24 human-labeled PRs, rePRieve matched the human label on 15. On the 7 PRs where humans were confident, rePRieve escalated all 7 and never contradicted a human. Its only 2 confident verdicts came on PRs that humans rated uncertain.
 
 | Human label | UNSUPPORTED | CONFIRMED | ESCALATE |
 | --- | ---: | ---: | ---: |
@@ -134,13 +134,13 @@ On the 24 human-labeled PRs, Close Call matched the human label on 15. On the 7 
 Rows are human labels; columns are hosted Gemma 4 verdicts via the Gemini API.
 The label mapping is NOT_JUSTIFIED ↔ UNSUPPORTED, JUSTIFIED ↔ CONFIRMED,
 UNCERTAIN ↔ ESCALATE. This is label agreement, not accuracy. On the confident
-human cases, Close Call abstained rather than making an opposite confident call;
+human cases, rePRieve abstained rather than making an opposite confident call;
 it did not reproduce those human decisions. This is not a claim of error-free
 classification. Human-human agreement is 1 of 2, too small to interpret.
 
 
 **Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
-under the inferred later-redo label. The stale bot let all 5 close; Close Call
+under the inferred later-redo label. The stale bot let all 5 close; rePRieve
 approved none of them and sent all 5 to a human.** These are historical replay
 results, not actions taken on GitHub or proof of maintainer intent.
 
