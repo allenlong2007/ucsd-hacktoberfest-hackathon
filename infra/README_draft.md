@@ -102,38 +102,24 @@ illustrate UI behavior but cannot support a real-data demo or reported metrics.
 The frontend owner publishes real `ai/out/audits.jsonl` and
 `ai/out/eval_summary.json` into the viewer after evaluation.
 
-## Data and evaluation
+## Data and limitations
 
-Planned real source: public GitHub PR timelines, comments, reviews, linked issues,
-and diffs collected by Lio. The contract's sample path is
-`backend/data/sample/stale_closures_sample.jsonl`; it is now available on the backend branch (see `infra/gold_set.csv` for the pinned
-commit). The 42 Jest PRs supplied 30 agent-assisted reviews pending human confirmation. `shared/fixtures/` is explicitly FAKE, including example
-repository names and results. Do not copy those rows into the gold set.
+Our dataset comes from a single repository, jestjs/jest: 42 pull requests closed by its stale bot (github-actions) between October 2024 and October 2026, of which 5 were later redone in a near-identical merged PR and 0 were reopened. We also scanned 1,000 closed home-assistant/core PRs, but only one looked like a stale-bot closure, and on inspection it was the author closing their own PR, so we dropped that repo and tightened the detector to require the bot’s own wording and to never count self-closes. Outcome labels are inferred from later events, not confirmed by maintainers, and a closure only counts as ‘redone later’ if a merged PR touched at least half the same files with at least 40% of the same added lines. 17 of the 42 closures happened less than 180 days ago, so their redo window isn’t complete; they’re excluded from the headline wrongful-closure rate. With 5 wrongful cases, every result here is a small-sample result.
+
+Our answer key is 24 PRs labeled by three team members, judging only what was visible at close time. Lio’s 9 AI-assisted labels are excluded, and Emmanuel had seen AI-suggested labels before labeling.
 
 The inference input must exclude `outcome`, `evidence`, post-close events, and
-future diff matches. Later reopening or a near-identical merge within 180 days is
-an **inferred** wrongful-closure label, not proof of maintainer intent. Diff
-similarity is used only for outcome labeling, never as a predictor. `no_evidence`
-does not mean closure was justified, especially with incomplete follow-up.
-
-Emmanuel reviews all 30 real PRs; Nilesh independently double-checks 5 selected PRs
-using `infra/gold_set.csv` and `infra/labeling.md`. Report reviewer agreement only
-on those 5, with its actual denominator. Hand judgments of closure justification are distinct from
-future-event labels; retain disagreements and ambiguous cases.
-
-Report wrongful-closure recall, UNSUPPORTED precision, escalation rate, and rejected
-claim counts against the stale-bot and metadata baselines. Compare approaches on
-the same eligible records or explicitly disclose different denominators. Give n,
-repository list, collection date, exclusions, missing data, and observation-window
-coverage. Leave undefined metrics null rather than claiming zero.
+future diff matches. Diff similarity is used for outcome labeling, never as a
+predictor. `no_evidence` does not establish justified closure. The fake records in
+`shared/fixtures/` must not be used in results. Human-source filtering and agreement
+counts are documented in `infra/gold_summary.md` and `infra/labeling.md`.
 
 ## Evaluation results
 
-Source: `ai/out/eval_summary.json` at `dev/ai` commit `d7218c4c341d6f0191e1d41e509bbdf3da59cf30`
+Source: `ai/out/eval_summary.json` at `main` commit `a01c7452b140ddbecef5caa5898936b0bcdb9654`
 (generated `2026-10-25T23:46:48.247427+00:00`), plus `infra/gold_summary.md`.
-The evaluation source was not yet merged into main when this draft was updated;
-recheck against the merged file before publication. `gold_set` is currently null,
-so no Close Call-versus-human gold score is available yet.
+The evaluation file is on main, but `gold_set` is currently null.
+**Close Call versus human answer-key score: pending.**
 
 **Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
 under the inferred later-redo label. The stale bot let all 5 close; Close Call

@@ -52,11 +52,10 @@ labeling only. Emmanuel will hand-review 30 real PRs, and Nilesh will independen
 
 ## Evaluation results
 
-Source: `ai/out/eval_summary.json` at `dev/ai` commit `d7218c4c341d6f0191e1d41e509bbdf3da59cf30`
+Source: `ai/out/eval_summary.json` at `main` commit `a01c7452b140ddbecef5caa5898936b0bcdb9654`
 (generated `2026-10-25T23:46:48.247427+00:00`), plus `infra/gold_summary.md`.
-The evaluation source was not yet merged into main when this draft was updated;
-recheck against the merged file before publication. `gold_set` is currently null,
-so no Close Call-versus-human gold score is available yet.
+The evaluation file is on main, but `gold_set` is currently null.
+**Close Call versus human answer-key score: pending.**
 
 **Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
 under the inferred later-redo label. The stale bot let all 5 close; Close Call
