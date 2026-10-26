@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-10-25T23:46:48.247427+00:00",
+  "headline": {
+    "repos": [
+      "jestjs/jest"
+    ],
+    "stale_closures": 25,
+    "wrongful": 5,
+    "wrongful_rate": 0.2,
+    "eligible_note": "17 newer closures excluded: their 180-day window isn't complete"
+  },
+  "approaches": [
+    {
+      "name": "Stale bot",
+      "n": 25,
+      "wrongful_closed": 5,
+      "wrongful_escalated": 0,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": null,
+      "escalation_rate": 0.0
+    },
+    {
+      "name": "Metadata heuristic",
+      "n": 25,
+      "wrongful_closed": 5,
+      "wrongful_escalated": 0,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "escalation_rate": 0.0
+    },
+    {
+      "name": "Close Call: Gemma 4 26B (Gemini API)",
+      "n": 25,
+      "wrongful_closed": 0,
+      "wrongful_escalated": 5,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "escalation_rate": 0.88,
+      "model": "gemini:models/gemma-4-26b-a4b-it",
+      "claims_total": 101,
+      "claims_rejected": 0,
+      "avg_latency_s": 53.948
+    },
+    {
+      "name": "Close Call: Gemma 4 E2B (local)",
+      "n": 25,
+      "wrongful_closed": 0,
+      "wrongful_escalated": 5,
+      "wrongful_caught": 0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "escalation_rate": 0.88,
+      "model": "ollama:gemma4:e2b",
+      "claims_total": 148,
+      "claims_rejected": 21,
+      "avg_latency_s": 20.579
+    }
+  ],
+  "hallucination": {
+    "claims_total": 101,
+    "claims_rejected": 0
+  },
+  "gold_set": null,
+  "notes": [
+    "Labels inferred from later merges of near-identical changes",
+    "One repository (jestjs/jest)",
+    "Close Call is conservative: it escalates most closures to a human"
+  ]
+}
