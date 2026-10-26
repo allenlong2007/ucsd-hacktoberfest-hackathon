@@ -25,19 +25,26 @@ normalized (e.g. Not Justified → NOT_JUSTIFIED); explanation text is retained,
 with the AI-assisted source tags removed. No missing label was filled by the agent.
 `label_1/reviewer_1/reason_1` and `label_2/reviewer_2/reason_2` preserve label/explanation pairs with the primary reviewer first. The second group exists only on slots 3, 10, 17, 24, 30.
 
-## Final label rule
+## Source filtering and final label rule
 
-For a single entry, human_label is that entry. For identical repeated entries,
-it is the shared label. For conflicting entries, human_label is UNCERTAIN and
-adjudication_rationale notes "reviewers disagreed".
-Original submitted labels are never overwritten by this resolution rule.
-Review timestamps remain blank because the actual times were not provided.
+`label_source_1` and `label_source_2` record human / ai_assisted per submitted
+entry (blank for absent second entries). Lio's 9 entries are ai_assisted: label_1
+on slots 3, 7, 11, 15, 19, 23, 27; label_2 on 17, 30. All other submitted entries
+are human. No submitted label, reviewer or reason is changed.
+
+Derive human_label using human-source entries only: one label passes through;
+two matching labels pass through; conflicting human labels resolve to UNCERTAIN.
+Rows without human-source entries have blank human_label and are excluded from the
+answer key. Slots 7, 11, 15, 19, 23, 27 are excluded; slot 17 now uses Allen's
+JUSTIFIED label alone. `answer_key_eligible` records inclusion explicitly.
+Review timestamps remain blank because actual review times were not provided.
 
 ## Interpretation and export
 
-`infra/gold_summary.md` gives count tables and inter-reviewer agreement.
-`infra/gold_labels.json` exports the final labels with reviewers=4 and both assigned
-reviewers per PR. Inter-reviewer agreement: 2 of 5 double-labeled PRs (different reviewers, labeling independently). Small n, so indicative only.
+`infra/gold_summary.md` gives counts on 24 human-labeled PRs only.
+Human-human agreement: 1 of 2 (too small to interpret), on slots 10 and 24 only.
+The export `infra/gold_labels.json` contains 24 PRs, 3 human-source reviewers and
+2 double-human slots; assisted entries are not exported as answer-key labels.
 Score Close Call against human_label using UNSUPPORTED ↔ NOT_JUSTIFIED,
 CONFIRMED ↔ JUSTIFIED, ESCALATE ↔ UNCERTAIN. Nilesh owns the evaluation code and
 `eval_summary.json`; infra does not edit his files.
@@ -50,7 +57,7 @@ The CSV retains the pinned sample commit, SHA-256, and agent suggestions separat
 
 ## Limitations
 
-Only Emmanuel saw the AI suggestions before labeling.
+Lio's 9 labels were AI-assisted and are excluded from the answer key; only Emmanuel saw AI suggestions before labeling.
 Reviewer independence and exposure follow the team's report. The sample is
 outcome-stratified; do not infer population prevalence from it. Present-day pages
 may not reconstruct past edits. User explanations have been transcribed, not

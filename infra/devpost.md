@@ -78,13 +78,15 @@ conservative deferral to humans, not five affirmative wrongful-closure predictio
 An 88% escalation rate also means substantial human review remains.
 Exact reported models: `gemini:models/gemma-4-26b-a4b-it` and `ollama:gemma4:e2b`.
 
-The separate 30-PR gold set has four reviewers and five double-labeled PRs:
-inter-reviewer agreement was 2 of 5, with disagreements on slots 10, 17, 30.
-Small n, so indicative only. Final labels: 2 JUSTIFIED, 5 NOT_JUSTIFIED,
-23 UNCERTAIN. AI suggestions, not ground truth, matched 28 of 30 final labels.
-Only Emmanuel saw the AI suggestions before labeling. These 30 are an
-outcome-stratified selection from 42 PRs and have a different denominator from
-the 25 eligible-closure evaluation; do not combine their counts or percentages.
+The source-filtered gold set contains 24 PRs with human labels from Allen,
+Emmanuel and Nilesh; Lio's 9 AI-assisted entries are excluded. Human-human agreement
+is 1 of 2 (too small to interpret), with disagreement on slot 10. Final labels:
+3 JUSTIFIED, 4 NOT_JUSTIFIED, 17 UNCERTAIN.
+AI suggestions, not ground truth, matched 22 of 24 final labels. Only Emmanuel
+saw AI suggestions before labeling. These 24 are a filtered, outcome-stratified
+selection from 42 PRs and have a different denominator from the 25 eligible-closure
+evaluation; do not combine their counts or percentages.
+
 
 ## Challenges
 Reconstructing historical evidence without leaking future outcomes; preserving

@@ -1,9 +1,9 @@
 {
-  "n": 30,
-  "reviewers": 4,
-  "double_labeled": 5,
-  "agreement": "2/5",
-  "agreement_type": "inter_reviewer",
+  "n": 24,
+  "reviewers": 3,
+  "double_labeled": 2,
+  "agreement": "1/2",
+  "agreement_type": "human_human",
   "labels": [
     {
       "repo": "jestjs/jest",
@@ -23,8 +23,8 @@
       "repo": "jestjs/jest",
       "pr_number": 15866,
       "human_label": "UNCERTAIN",
-      "reviewer_1": "Lio",
-      "reviewer_2": "Allen"
+      "reviewer_1": "Allen",
+      "reviewer_2": null
     },
     {
       "repo": "jestjs/jest",
@@ -45,13 +45,6 @@
       "pr_number": 15971,
       "human_label": "UNCERTAIN",
       "reviewer_1": "Emmanuel",
-      "reviewer_2": null
-    },
-    {
-      "repo": "jestjs/jest",
-      "pr_number": 16002,
-      "human_label": "UNCERTAIN",
-      "reviewer_1": "Lio",
       "reviewer_2": null
     },
     {
@@ -77,13 +70,6 @@
     },
     {
       "repo": "jestjs/jest",
-      "pr_number": 16177,
-      "human_label": "UNCERTAIN",
-      "reviewer_1": "Lio",
-      "reviewer_2": null
-    },
-    {
-      "repo": "jestjs/jest",
       "pr_number": 15436,
       "human_label": "JUSTIFIED",
       "reviewer_1": "Nilesh",
@@ -105,13 +91,6 @@
     },
     {
       "repo": "jestjs/jest",
-      "pr_number": 16229,
-      "human_label": "UNCERTAIN",
-      "reviewer_1": "Lio",
-      "reviewer_2": null
-    },
-    {
-      "repo": "jestjs/jest",
       "pr_number": 15365,
       "human_label": "UNCERTAIN",
       "reviewer_1": "Nilesh",
@@ -120,22 +99,15 @@
     {
       "repo": "jestjs/jest",
       "pr_number": 15850,
-      "human_label": "UNCERTAIN",
+      "human_label": "JUSTIFIED",
       "reviewer_1": "Allen",
-      "reviewer_2": "Lio"
+      "reviewer_2": null
     },
     {
       "repo": "jestjs/jest",
       "pr_number": 15421,
       "human_label": "UNCERTAIN",
       "reviewer_1": "Emmanuel",
-      "reviewer_2": null
-    },
-    {
-      "repo": "jestjs/jest",
-      "pr_number": 15877,
-      "human_label": "NOT_JUSTIFIED",
-      "reviewer_1": "Lio",
       "reviewer_2": null
     },
     {
@@ -161,13 +133,6 @@
     },
     {
       "repo": "jestjs/jest",
-      "pr_number": 16020,
-      "human_label": "UNCERTAIN",
-      "reviewer_1": "Lio",
-      "reviewer_2": null
-    },
-    {
-      "repo": "jestjs/jest",
       "pr_number": 15944,
       "human_label": "UNCERTAIN",
       "reviewer_1": "Nilesh",
@@ -189,13 +154,6 @@
     },
     {
       "repo": "jestjs/jest",
-      "pr_number": 15970,
-      "human_label": "UNCERTAIN",
-      "reviewer_1": "Lio",
-      "reviewer_2": null
-    },
-    {
-      "repo": "jestjs/jest",
       "pr_number": 16157,
       "human_label": "NOT_JUSTIFIED",
       "reviewer_1": "Nilesh",
@@ -213,7 +171,7 @@
       "pr_number": 16242,
       "human_label": "UNCERTAIN",
       "reviewer_1": "Emmanuel",
-      "reviewer_2": "Lio"
+      "reviewer_2": null
     }
   ]
 }
