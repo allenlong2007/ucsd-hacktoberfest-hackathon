@@ -18,6 +18,15 @@ Writes `data/out/stale_closures.jsonl` (gitignored) and a committed sample of up
 including every wrongful closure, at `data/sample/stale_closures_sample.jsonl`.
 It uses the GraphQL helper in `data/fetch_live.py`.
 
+## `data/fetch_pr.py`: fetch one PR for a live audit
+Prints one PR as a single `stale_closure` JSON line, with `outcome: null` and `evidence: {}`.
+Comments, reviews and linked issues stop at the close (the stale-bot close if there was one);
+for an open PR the cutoff is now and `close_actor` is null.
+
+```
+python3 backend/data/fetch_pr.py jestjs/jest 15880 > /tmp/pr.jsonl
+```
+
 ## `verifier/`: claim fact-checker
 `verify_claims(pr, claims)` in `verifier/verify.py` checks each model-written claim against
 the PR data: the referenced comment, review or issue must exist, have that author, come from

@@ -59,7 +59,7 @@ export default function App() {
       <main>
         {error && <p className="error">Could not load data: {error}</p>}
         {!error && (!audits || !summary) && <p>Loading…</p>}
-        {audits && summary && (onResults ? <ResultsPage summary={summary} /> : <AuditPage audits={audits} closures={closures} route={route} />)}
+        {audits && summary && (onResults ? <ResultsPage summary={summary} auditCount={audits.length} /> : <AuditPage audits={audits} closures={closures} route={route} />)}
       </main>
     </div>
   )
