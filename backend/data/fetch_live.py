@@ -43,8 +43,8 @@ def run_graphql(query, **variables):
     """Run a GraphQL query through `gh api graphql`; returns the `data` object."""
     cmd = ["gh", "api", "graphql", "-f", f"query={query}"]
     for k, v in variables.items():
-        if v is not None:
-            cmd += ["-f", f"{k}={v}"]
+        if v is not None:  # -F sends ints as GraphQL Int; -f keeps strings as-is
+            cmd += ["-F" if isinstance(v, int) else "-f", f"{k}={v}"]
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
         raise RuntimeError(res.stdout.strip() or res.stderr.strip())
