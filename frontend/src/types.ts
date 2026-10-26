@@ -48,6 +48,19 @@ export interface Approach {
   avg_latency_s?: number
 }
 
+/** Human label (NOT_JUSTIFIED | JUSTIFIED | UNCERTAIN) -> Close Call verdict -> count. */
+export type Confusion = Record<string, Partial<Record<Verdict, number>>>
+
+export interface GoldSet {
+  n: number
+  agreement_with_inferred_labels?: number
+  agreement_reviewers?: string
+  close_call_agreement?: string
+  reviewers?: number
+  excluded_ai_assisted?: number
+  confusion?: Confusion
+}
+
 export interface EvalSummary {
   _fixture?: boolean
   generated_at: string
@@ -60,12 +73,7 @@ export interface EvalSummary {
   }
   approaches: Approach[]
   hallucination: { claims_total: number; claims_rejected: number }
-  gold_set?: {
-    n: number
-    agreement_with_inferred_labels: number
-    agreement_reviewers?: string
-    close_call_agreement?: string
-  } | null
+  gold_set?: GoldSet | null
   notes: string[]
 }
 
