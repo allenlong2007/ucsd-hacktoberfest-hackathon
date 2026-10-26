@@ -1,7 +1,7 @@
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { HeadlineStat, ResultsChart } from '../components'
 import { modelName } from '../modelNames'
-import type { Approach, EvalSummary } from '../types'
+import type { Approach, EvalSummary, GoldSet, Verdict } from '../types'
 
 function pct(x: number | null | undefined): string {
   return x == null ? '—' : `${(x * 100).toFixed(0)}%`
@@ -101,6 +101,71 @@ function FactChecker({ summary, auditCount }: { summary: EvalSummary; auditCount
   )
 }
 
+const HUMAN_LABELS = ['NOT_JUSTIFIED', 'JUSTIFIED', 'UNCERTAIN']
+const HUMAN_LABEL_TEXT: Record<string, string> = {
+  NOT_JUSTIFIED: 'Closing not justified',
+  JUSTIFIED: 'Closing justified',
+  UNCERTAIN: 'Uncertain',
+}
+const VERDICT_COLS: Verdict[] = ['UNSUPPORTED', 'CONFIRMED', 'ESCALATE']
+
+// Gold set: shown as a confusion table, not a single accuracy number, because most of
+// close_call_agreement comes from both sides being uncertain.
+function GoldSetPanel({ gold }: { gold: GoldSet }) {
+  const c = gold.confusion
+  const confident = c ? ['NOT_JUSTIFIED', 'JUSTIFIED'].map((h) => c[h] ?? {}) : []
+  const confidentTotal = confident.reduce((t, row) => t + VERDICT_COLS.reduce((u, v) => u + (row[v] ?? 0), 0), 0)
+  const confidentEscalated = confident.reduce((t, row) => t + (row.ESCALATE ?? 0), 0)
+  // Contradiction: human says not justified but Close Call CONFIRMED, or justified but UNSUPPORTED.
+  const contradictions = c ? (c.NOT_JUSTIFIED?.CONFIRMED ?? 0) + (c.JUSTIFIED?.UNSUPPORTED ?? 0) : 0
+  const facts = [
+    `${gold.n} PRs`,
+    gold.reviewers != null && `${gold.reviewers} human reviewers`,
+    gold.excluded_ai_assisted != null && `${gold.excluded_ai_assisted} AI-assisted labels excluded`,
+  ].filter(Boolean)
+
+  return (
+    <section className="gold-set">
+      <h2>Hand-checked gold set</h2>
+      <p>{facts.join(', ')}</p>
+      {c && (
+        <div className="table-wrap">
+          <table className="confusion">
+            <caption>
+              {confidentTotal > 0 && confidentEscalated === confidentTotal && contradictions === 0
+                ? `On the ${confidentTotal} PRs humans judged confidently, Close Call escalated all ${confidentTotal} and never contradicted them. Most agreement comes from shared uncertainty.`
+                : 'Human label (rows) vs Close Call verdict (columns).'}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Human label ↓ / Close Call →</th>
+                {VERDICT_COLS.map((v) => (
+                  <th scope="col" key={v}>{v}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {HUMAN_LABELS.filter((h) => c[h]).map((h) => (
+                <tr key={h}>
+                  <th scope="row">{HUMAN_LABEL_TEXT[h]}</th>
+                  {VERDICT_COLS.map((v) => (
+                    <td key={v}>{c[h][v] ?? 0}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="muted">
+        {gold.close_call_agreement && <>Raw agreement with Close Call: {gold.close_call_agreement} (mostly uncertain ↔ ESCALATE). </>}
+        {gold.agreement_reviewers && <>Reviewer agreement: {gold.agreement_reviewers}. </>}
+        {gold.agreement_with_inferred_labels != null && <>Agreement with inferred labels: {pct(gold.agreement_with_inferred_labels)}.</>}
+      </p>
+    </section>
+  )
+}
+
 export default function ResultsPage({ summary, auditCount }: { summary: EvalSummary; auditCount: number }) {
   const { headline, approaches, gold_set } = summary
 
@@ -149,16 +214,7 @@ export default function ResultsPage({ summary, auditCount }: { summary: EvalSumm
         </div>
       </details>
 
-      {gold_set && (
-        <section>
-          <h2>Hand-checked gold set</h2>
-          <p>
-            n={gold_set.n}, agreement with inferred labels {pct(gold_set.agreement_with_inferred_labels)}
-            {gold_set.agreement_reviewers && <> · reviewers agreed {gold_set.agreement_reviewers}</>}
-            {gold_set.close_call_agreement && <> · Close Call agreed {gold_set.close_call_agreement}</>}
-          </p>
-        </section>
-      )}
+      {gold_set && <GoldSetPanel gold={gold_set} />}
 
       {summary.notes.length > 0 && (
         <ul className="muted">

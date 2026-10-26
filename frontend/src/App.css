@@ -35,3 +35,5 @@ th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--cc-
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .filters button { font: inherit; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--cc-border, #ddd); background: var(--cc-surface, #fff); color: var(--cc-text, #111); cursor: pointer; }
 .filters button[aria-pressed="true"] { background: var(--cc-link, #2563eb); border-color: var(--cc-link, #2563eb); color: var(--cc-bg, #fff); }
+.confusion caption { text-align: left; font-weight: 600; margin-bottom: 8px; caption-side: top; }
+.confusion td { font-variant-numeric: tabular-nums; }

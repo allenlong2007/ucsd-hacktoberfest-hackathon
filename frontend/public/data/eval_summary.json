@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T23:46:48.247427+00:00",
+  "generated_at": "2026-10-26T00:05:06.437978+00:00",
   "headline": {
     "repos": [
       "jestjs/jest"
@@ -63,10 +63,34 @@
     "claims_total": 101,
     "claims_rejected": 0
   },
-  "gold_set": null,
+  "gold_set": {
+    "n": 24,
+    "close_call_agreement": "15/24",
+    "agreement_reviewers": "1/2 (human-human double labels; too small to interpret)",
+    "reviewers": 3,
+    "excluded_ai_assisted": 6,
+    "confusion": {
+      "NOT_JUSTIFIED": {
+        "UNSUPPORTED": 0,
+        "CONFIRMED": 0,
+        "ESCALATE": 4
+      },
+      "JUSTIFIED": {
+        "UNSUPPORTED": 0,
+        "CONFIRMED": 0,
+        "ESCALATE": 3
+      },
+      "UNCERTAIN": {
+        "UNSUPPORTED": 1,
+        "CONFIRMED": 1,
+        "ESCALATE": 15
+      }
+    }
+  },
   "notes": [
     "Labels inferred from later merges of near-identical changes",
     "One repository (jestjs/jest)",
-    "Close Call is conservative: it escalates most closures to a human"
+    "Close Call is conservative: it escalates most closures to a human",
+    "Answer key excludes 6 AI-assisted labels."
   ]
 }
