@@ -77,6 +77,19 @@ Written to `ai/out/eval_summary.json`:
  "notes": ["Labels are inferred from later reopen or merge events."]}
 ```
 
+### Optional fields added at 4:45 (backward compatible)
+Each entry in `approaches[]` may also have:
+- `wrongful_closed`: how many of the wrongful closures this approach would let close
+  (CONFIRMED, or "always close" for the stale bot). **This is the headline safety metric.**
+- `wrongful_escalated`: how many wrongful closures it sent to a human (ESCALATE)
+- `model`: for example `"gemini:models/gemma-4-26b-a4b-it"` or `"ollama:gemma4:e2b"`
+- `claims_total`, `claims_rejected`, `avg_latency_s`: per-backend stats
+
+`headline` may also have `eligible_note` (for example "17 newer closures excluded: their
+180-day window isn't complete"). `gold_set` may also have `agreement_reviewers` ("X/5")
+and `close_call_agreement` ("X/30", mapping UNSUPPORTED ↔ NOT_JUSTIFIED,
+CONFIRMED ↔ JUSTIFIED, ESCALATE ↔ UNCERTAIN). `gold_set` can be `null` until labels are in.
+
 ## Where the frontend reads from
 Frontend agent 1 copies the final files into `frontend/public/data/` at 5:15
 (`audits.jsonl`, `eval_summary.json`). Until then, it uses copies of `shared/fixtures/`.

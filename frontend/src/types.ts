@@ -25,6 +25,8 @@ export interface AuditResult {
   claims_rejected: number
   model: string
   latency_s: number
+  /** "real" when the audit went through backend/verifier. */
+  verifier?: string
   outcome?: Outcome
 }
 
@@ -35,6 +37,28 @@ export interface Approach {
   recall: number | null
   precision: number | null
   escalation_rate: number | null
+  // Optional fields added at 4:45 (see CONTRACT.md).
+  /** Wrongful closures this approach would let close. The headline safety metric. */
+  wrongful_closed?: number
+  /** Wrongful closures sent to a human (ESCALATE). */
+  wrongful_escalated?: number
+  model?: string
+  claims_total?: number
+  claims_rejected?: number
+  avg_latency_s?: number
+}
+
+/** Human label (NOT_JUSTIFIED | JUSTIFIED | UNCERTAIN) -> Close Call verdict -> count. */
+export type Confusion = Record<string, Partial<Record<Verdict, number>>>
+
+export interface GoldSet {
+  n: number
+  agreement_with_inferred_labels?: number
+  agreement_reviewers?: string
+  close_call_agreement?: string
+  reviewers?: number
+  excluded_ai_assisted?: number
+  confusion?: Confusion
 }
 
 export interface EvalSummary {
@@ -45,10 +69,11 @@ export interface EvalSummary {
     stale_closures: number
     wrongful: number
     wrongful_rate: number
+    eligible_note?: string
   }
   approaches: Approach[]
   hallucination: { claims_total: number; claims_rejected: number }
-  gold_set?: { n: number; agreement_with_inferred_labels: number }
+  gold_set?: GoldSet | null
   notes: string[]
 }
 
