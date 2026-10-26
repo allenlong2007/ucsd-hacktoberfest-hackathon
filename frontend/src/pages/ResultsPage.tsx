@@ -59,7 +59,7 @@ function LetThrough({ approaches, wrongful }: { approaches: Approach[]; wrongful
           </tbody>
         </table>
       </div>
-      <p className="muted">"Sent to a human" means ESCALATE: Close Call advises a person to review, it never closes or reopens anything.</p>
+      <p className="muted">"Sent to a human" means ESCALATE: rePRieve advises a person to review, it never closes or reopens anything.</p>
     </section>
   )
 }
@@ -116,7 +116,7 @@ function GoldSetPanel({ gold }: { gold: GoldSet }) {
   const confident = c ? ['NOT_JUSTIFIED', 'JUSTIFIED'].map((h) => c[h] ?? {}) : []
   const confidentTotal = confident.reduce((t, row) => t + VERDICT_COLS.reduce((u, v) => u + (row[v] ?? 0), 0), 0)
   const confidentEscalated = confident.reduce((t, row) => t + (row.ESCALATE ?? 0), 0)
-  // Contradiction: human says not justified but Close Call CONFIRMED, or justified but UNSUPPORTED.
+  // Contradiction: human says not justified but rePRieve CONFIRMED, or justified but UNSUPPORTED.
   const contradictions = c ? (c.NOT_JUSTIFIED?.CONFIRMED ?? 0) + (c.JUSTIFIED?.UNSUPPORTED ?? 0) : 0
   const facts = [
     `${gold.n} PRs`,
@@ -133,12 +133,12 @@ function GoldSetPanel({ gold }: { gold: GoldSet }) {
           <table className="confusion">
             <caption>
               {confidentTotal > 0 && confidentEscalated === confidentTotal && contradictions === 0
-                ? `On the ${confidentTotal} PRs humans judged confidently, Close Call escalated all ${confidentTotal} and never contradicted them. Most agreement comes from shared uncertainty.`
-                : 'Human label (rows) vs Close Call verdict (columns).'}
+                ? `On the ${confidentTotal} PRs humans judged confidently, rePRieve escalated all ${confidentTotal} and never contradicted them. Most agreement comes from shared uncertainty.`
+                : 'Human label (rows) vs rePRieve verdict (columns).'}
             </caption>
             <thead>
               <tr>
-                <th scope="col">Human label ↓ / Close Call →</th>
+                <th scope="col">Human label ↓ / rePRieve →</th>
                 {VERDICT_COLS.map((v) => (
                   <th scope="col" key={v}>{v}</th>
                 ))}
@@ -158,7 +158,7 @@ function GoldSetPanel({ gold }: { gold: GoldSet }) {
         </div>
       )}
       <p className="muted">
-        {gold.close_call_agreement && <>Raw agreement with Close Call: {gold.close_call_agreement} (mostly uncertain ↔ ESCALATE). </>}
+        {gold.close_call_agreement && <>Raw agreement with rePRieve: {gold.close_call_agreement} (mostly uncertain ↔ ESCALATE). </>}
         {gold.agreement_reviewers && <>Reviewer agreement: {gold.agreement_reviewers}. </>}
         {gold.agreement_with_inferred_labels != null && <>Agreement with inferred labels: {pct(gold.agreement_with_inferred_labels)}.</>}
       </p>

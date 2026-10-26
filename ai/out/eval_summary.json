@@ -31,7 +31,7 @@
       "escalation_rate": 0.0
     },
     {
-      "name": "Close Call: Gemma 4 26B (Gemini API)",
+      "name": "rePRieve: Gemma 4 26B (Gemini API)",
       "n": 25,
       "wrongful_closed": 0,
       "wrongful_escalated": 5,
@@ -45,7 +45,7 @@
       "avg_latency_s": 53.948
     },
     {
-      "name": "Close Call: Gemma 4 E2B (local)",
+      "name": "rePRieve: Gemma 4 E2B (local)",
       "n": 25,
       "wrongful_closed": 0,
       "wrongful_escalated": 5,
@@ -90,7 +90,7 @@
   "notes": [
     "Labels inferred from later merges of near-identical changes",
     "One repository (jestjs/jest)",
-    "Close Call is conservative: it escalates most closures to a human",
+    "rePRieve is conservative: it escalates most closures to a human",
     "Answer key excludes 6 AI-assisted labels."
   ]
 }

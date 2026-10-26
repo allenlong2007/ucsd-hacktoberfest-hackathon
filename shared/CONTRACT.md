@@ -70,7 +70,7 @@ Written to `ai/out/eval_summary.json`:
  "approaches": [
    {"name": "Stale bot", "n": 300, "wrongful_caught": 0, "recall": 0.0, "precision": null, "escalation_rate": 0.0},
    {"name": "Metadata heuristic", "n": 300, "wrongful_caught": 20, "recall": 0.48, "precision": 0.31, "escalation_rate": 0.0},
-   {"name": "Close Call (Gemma 4 + verifier)", "n": 80, "wrongful_caught": 15, "recall": 0.6, "precision": 0.5, "escalation_rate": 0.2}
+   {"name": "rePRieve (Gemma 4 + verifier)", "n": 80, "wrongful_caught": 15, "recall": 0.6, "precision": 0.5, "escalation_rate": 0.2}
  ],
  "hallucination": {"claims_total": 400, "claims_rejected": 37},
  "gold_set": {"n": 30, "agreement_with_inferred_labels": 0.83},

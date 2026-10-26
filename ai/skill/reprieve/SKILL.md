@@ -1,11 +1,11 @@
 ---
-name: close-call
+name: reprieve
 description: Audit whether a stale GitHub pull request closure is supported by verifiable evidence, using local or hosted Gemma and human escalation.
 ---
 
-# Close Call
+# rePRieve
 
-Close Call audits whether a stale-bot pull-request closure was supported by the
+rePRieve audits whether a stale-bot pull-request closure was supported by the
 evidence visible at close time. It advises a maintainer; it never closes, reopens,
 comments on, or edits a GitHub pull request.
 

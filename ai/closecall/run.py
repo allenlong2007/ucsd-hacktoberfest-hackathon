@@ -1,4 +1,4 @@
-"""Run Close Call audits against JSONL stale-closure records."""
+"""Run rePRieve audits against JSONL stale-closure records."""
 
 from __future__ import annotations
 

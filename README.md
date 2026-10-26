@@ -1,8 +1,8 @@
-# Close Call
+# rePRieve
 
 **Before a stale bot closes someone's pull request, check whether closing it is justified.**
 
-Close Call is an agent skill that audits stale-bot pull request closures. Gemma 4 reads
+rePRieve is an agent skill that audits stale-bot pull request closures. Gemma 4 reads
 what was visible when the bot closed the PR and writes claims that quote specific
 comments, reviews and issues. A plain-Python verifier checks every claim against the
 PR data, and the verdict uses only the claims that pass. It advises a maintainer and
@@ -33,7 +33,7 @@ that does.
    - `UNSUPPORTED`: the work was still wanted (maintainer interest, an approval, an open linked issue)
    - `ESCALATE`: security-related, conflicting signals, or not enough evidence, so a human decides
 
-Close Call checks quotes, not meaning: a verified quote proves the source exists, not
+rePRieve checks quotes, not meaning: a verified quote proves the source exists, not
 that the model read it correctly. That's why the safe default is `ESCALATE`.
 
 ## Results (jestjs/jest, small sample)
@@ -45,16 +45,16 @@ near-identical change was merged later anyway.
 |---|---|---|
 | Stale bot (today's practice) | **5** | 0% |
 | Metadata heuristic | **5** | 0% |
-| Close Call: Gemma 4 26B via Gemini API (`gemma-4-26b-a4b-it`) | **0** | 88% |
-| Close Call: Gemma 4 E2B, local via Ollama (`gemma4:e2b`) | **0** | 88% |
+| rePRieve: Gemma 4 26B via Gemini API (`gemma-4-26b-a4b-it`) | **0** | 88% |
+| rePRieve: Gemma 4 E2B, local via Ollama (`gemma4:e2b`) | **0** | 88% |
 
-- **Close Call approved none of the wrongful closures**, and it sent all 5 to a human. It
+- **rePRieve approved none of the wrongful closures**, and it sent all 5 to a human. It
   is conservative: most closures in this data had no human decision at all.
 - **The verifier matters.** Across all 42 audits, it rejected 21 of 148 citations from the
   local E2B model and 0 of 101 from Gemma 4 26B. A rejection is a failed citation check,
   not necessarily an invented claim.
 - **Human answer key:** 24 PRs labeled by three team members, judging only what was visible
-  at close time. On the 7 PRs humans judged confidently, Close Call escalated all 7 and
+  at close time. On the 7 PRs humans judged confidently, rePRieve escalated all 7 and
   never contradicted them. Its only 2 confident verdicts were on PRs humans rated
   uncertain. Most of its 15/24 agreement is shared uncertainty, so we don't present it as
   accuracy.
@@ -85,7 +85,7 @@ python3 -m unittest ai.closecall.test_backends ai.closecall.test_verdict ai.eval
 cd frontend && npm ci && npm run dev
 ```
 
-More detail: `ai/skill/close-call/SKILL.md` (the agent skill), `backend/README.md`,
+More detail: `ai/skill/reprieve/SKILL.md` (the agent skill), `backend/README.md`,
 `frontend/README.md`, and `infra/README_draft.md` (the full write-up).
 
 ## Data and limitations

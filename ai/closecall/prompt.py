@@ -1,4 +1,4 @@
-"""Prompt construction and output normalization for Close Call."""
+"""Prompt construction and output normalization for rePRieve."""
 
 import json
 

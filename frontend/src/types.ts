@@ -48,7 +48,7 @@ export interface Approach {
   avg_latency_s?: number
 }
 
-/** Human label (NOT_JUSTIFIED | JUSTIFIED | UNCERTAIN) -> Close Call verdict -> count. */
+/** Human label (NOT_JUSTIFIED | JUSTIFIED | UNCERTAIN) -> rePRieve verdict -> count. */
 export type Confusion = Record<string, Partial<Record<Verdict, number>>>
 
 export interface GoldSet {

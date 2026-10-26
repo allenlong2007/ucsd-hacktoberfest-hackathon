@@ -15,7 +15,7 @@ automatically resolved. There is no implemented cross-model adjudicator, and
 
 Source: https://github.com/jestjs/jest/pull/15877
 
-## jest#15880: Close Call refused to approve closure
+## jest#15880: rePRieve refused to approve closure
 
 Both models return **ESCALATE**, with real verified evidence of the author's
 pre-closure request for review. The inferred outcome is `redone_later`.
