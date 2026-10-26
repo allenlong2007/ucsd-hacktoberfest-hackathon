@@ -48,3 +48,22 @@ respect a numeric `Retry-After` header. `--resume` preserves completed real audi
 for the same backend/model. The report checks complete, unique input coverage.
 For Python installations missing a CA bundle, set `SSL_CERT_FILE` to your system
 CA file (on this Mac, `/etc/ssl/cert.pem`); keep certificate verification enabled.
+
+## Outcome evaluation
+
+```sh
+python3 ai/eval/score.py
+```
+
+This writes `ai/out/eval_summary.json` per CONTRACT.md section 4. Verdict metrics
+include only closures at least 180 days before 2026-10-25; claims and latency use
+all 42 audits. The heuristic is imported from `backend/eval/baselines.py`.
+
+`gold_set` is null until `infra/gold_labels.json` exists. Rerunning the command
+then scores `human_label` against Gemini using the three-way contract mapping.
+Supported gold input is a list of final consensus rows with `repo`, `pr_number`,
+and `human_label`, or an object containing that list in `labels` and optional
+`agreement_reviewers`. Missing `repo` defaults to `jestjs/jest`; duplicate PRs,
+unknown labels, and unaudited PRs are rejected. The scorer never manufactures
+human labels or reviewer agreement. If infra uses a different schema, agree on
+that schema before adapting the loader.
