@@ -64,33 +64,116 @@ and `ai/out/audits_ollama.jsonl`. Labels: `infra/gold_set.csv`.
 
 ## Quick start
 
-Requirements: Python 3, the GitHub CLI (`gh auth login`), and either a Gemini API key
-or [Ollama](https://ollama.com). Node.js is needed for the viewer.
+There are three ways to try rePRieve, from least to most setup:
+
+| | What you'll see | You need | Time |
+|---|---|---|---|
+| **A. View results** | All 42 audits and the comparison chart | Node.js | 2 min |
+| **B. Run the tests** | The verifier and verdict logic passing | Python 3 | 1 min |
+| **C. Audit a PR live** | rePRieve judging a real PR from GitHub | Python 3, GitHub CLI, and a Gemini API key **or** Ollama | 5 min |
+
+Start by getting the code. **Run every command below from the repository root.**
 
 ```bash
-# Audit one PR live (needs gh, and GEMINI_API_KEY in ai/.env, which is gitignored)
-python3 backend/data/fetch_pr.py jestjs/jest 15880 > /tmp/pr.jsonl
-python3 ai/closecall/run.py /tmp/pr.jsonl --backend gemini
+git clone https://github.com/allenlong2007/ucsd-hacktoberfest-hackathon.git
+cd ucsd-hacktoberfest-hackathon
+```
 
-# Or fully local
-ollama pull gemma4:e2b
-python3 ai/closecall/run.py /tmp/pr.jsonl --backend ollama --model gemma4:e2b
+### A. View the results (no API key needed)
 
-# Tests
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open the address it prints (usually http://localhost:5173).
+
+- **Audit** lists all 42 jestjs/jest PRs with their verdict, a one-line summary and the
+  claims that passed the fact-check.
+- **Results** compares rePRieve with the stale bot and the metadata heuristic.
+
+Press `Ctrl+C` to stop, then `cd ..` to go back to the repository root.
+
+### B. Run the tests (no API key needed)
+
+```bash
 python3 backend/verifier/test_verify.py
 python3 backend/eval/test_baselines.py
 python3 -m unittest ai.closecall.test_backends ai.closecall.test_verdict ai.eval.test_score
-
-# Viewer (static site that reads frontend/public/data/)
-cd frontend && npm ci && npm run dev
 ```
+
+Each command should end with `OK`.
+
+### C. Audit a real pull request live
+
+**One-time setup.** You need both of these:
+
+1. **The GitHub CLI**, installed and logged in: `gh auth login`
+2. **One way to run Gemma 4.** Choose either one:
+   - **Gemini API:** copy the example settings file, then paste your key after
+     `GEMINI_API_KEY=` in `ai/.env`. The file is gitignored, so the key is never committed.
+     ```bash
+     cp ai/.env.example ai/.env
+     ```
+   - **Fully local with Ollama:** install [Ollama](https://ollama.com), then in a separate
+     terminal run:
+     ```bash
+     ollama serve
+     ```
+     and in your main terminal:
+     ```bash
+     ollama pull gemma4:e2b
+     ```
+
+**Step 1: fetch the PR as it looked when the bot closed it.**
+This saves one JSON line with only the comments, reviews and linked issues from before the close.
+
+```bash
+python3 backend/data/fetch_pr.py jestjs/jest 15880 > /tmp/pr.jsonl
+```
+
+**Step 2: audit it.** Run only the line for the option you set up.
+
+```bash
+# If you set up the Gemini API:
+python3 ai/closecall/run.py /tmp/pr.jsonl --backend gemini --output /tmp/audit.jsonl
+
+# If you set up Ollama:
+python3 ai/closecall/run.py /tmp/pr.jsonl --backend ollama --model gemma4:e2b --output /tmp/audit.jsonl
+```
+
+**Step 3: read the verdict.**
+
+```bash
+cat /tmp/audit.jsonl
+```
+
+What to look for:
+
+- `verdict`: `CONFIRMED`, `UNSUPPORTED` or `ESCALATE`
+- `summary`: one sentence a maintainer can read
+- `claims`: each claim has `verified: true` or `false`, so you can see which citations
+  passed the fact-check and which were rejected
+
+**Try another PR:** in step 1, replace `jestjs/jest 15880` with any `OWNER/REPO NUMBER`.
 
 More detail: `ai/skill/reprieve/SKILL.md` (the agent skill), `backend/README.md`,
 `frontend/README.md`, and `infra/README_draft.md` (the full write-up).
 
 ## Data and limitations
 
-Our dataset comes from a single repository, jestjs/jest: 42 pull requests closed by its stale bot (github-actions) between October 2024 and October 2026, of which 5 were later redone in a near-identical merged PR and 0 were reopened. We also scanned 1,000 closed home-assistant/core PRs, but only one looked like a stale-bot closure, and on inspection it was the author closing their own PR, so we dropped that repo and tightened the detector to require the bot's own wording and to never count self-closes. Outcome labels are inferred from later events, not confirmed by maintainers, and a closure only counts as 'redone later' if a merged PR touched at least half the same files with at least 40% of the same added lines. 17 of the 42 closures happened less than 180 days ago, so their redo window isn't complete; they're excluded from the headline wrongful-closure rate. With 5 wrongful cases, every result here is a small-sample result.
+Our dataset comes from a single repository, jestjs/jest: 42 pull requests closed by its
+stale bot (github-actions) between October 2024 and October 2026, of which 5 were later
+redone in a near-identical merged PR and 0 were reopened. We also scanned 1,000 closed
+home-assistant/core PRs, but only one looked like a stale-bot closure, and on
+inspection it was the author closing their own PR, so we dropped that repo and tightened
+the detector to require the bot's own wording and to never count self-closes. Outcome
+labels are inferred from later events, not confirmed by maintainers, and a closure only
+counts as "redone later" if a merged PR touched at least half the same files with at
+least 40% of the same added lines. 17 of the 42 closures happened less than 180 days
+ago, so their redo window isn't complete; they're excluded from the headline
+wrongful-closure rate. With 5 wrongful cases, every result here is a small-sample result.
 
 Our answer key is 24 PRs labeled by three team members. Lio's 9 AI-assisted labels are
 excluded, and only Emmanuel had seen AI-suggested labels before labeling. Human-human
