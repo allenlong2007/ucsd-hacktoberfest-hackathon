@@ -1,10 +1,9 @@
 # Close Call — README draft
 
-Status: documentation draft for Allen to incorporate through a shared-files PR. The
-architecture below is the agreed design in `shared/PLAN.md` and `shared/CONTRACT.md`;
-the complete collector → model → verifier → evaluation pipeline is not yet present
-on the inspected main checkout. Reported evaluation results are transcribed below; this infra task did not rerun
-the model evaluation.
+Status: README draft for Allen to incorporate through PR #16. The merged main
+checkout contains the collector, verifier, AI runner, evaluation and viewer.
+Results below are transcribed from committed evaluation output; this documentation
+task did not rerun the model evaluation.
 
 ## The problem
 
@@ -16,7 +15,7 @@ justified, and shows evidence a maintainer can inspect before making a decision.
 
 1. Collect a stale-bot closure and reconstruct the information visible before
    `closed_at`: PR content, comments, reviews, and linked-issue state.
-2. Run Gemma 4 locally through Ollama to propose structured, source-quoted claims.
+2. Run Gemma 4 through Ollama or the Gemini API to propose structured, source-quoted claims.
 3. A deterministic Python verifier checks source references, authors, timestamps,
    and normalized quotations. Rejected claims are excluded from the verdict.
 4. Compute a verdict using verified claims only:
@@ -81,9 +80,17 @@ ollama run gemma4:e2b 'Return a short greeting.'
 ```
 
 The greeting checks local model execution only. It does not validate Close Call's
-claim schema, verifier, or evaluation. Use the AI owner's runner and pinned model
-instructions once merged; no working pipeline command or skill installation command
-is available on main yet. Never show a guessed install command in the submission.
+claim schema, verifier, or evaluation. Use the merged runner from the repository root, with working GitHub API access
+and a Gemini API key configured as documented in `ai/README.md`:
+
+```bash
+python3 backend/data/fetch_pr.py jestjs/jest 15880 > /tmp/close-call-pr.jsonl
+python3 ai/closecall/run.py /tmp/close-call-pr.jsonl --backend gemini --output /tmp/close-call-audit.jsonl
+```
+
+The skill instructions are in `ai/skill/close-call/SKILL.md`. These commands are
+transcribed from the merged CLI interfaces; this documentation task has not run
+a live authenticated model request.
 
 ### Viewer setup
 
@@ -97,10 +104,8 @@ npm run dev -- --host 127.0.0.1
 ```
 
 These are repository-defined commands, not a claim that this infra task tested the
-viewer. Current `frontend/public/data/` files are synthetic fixtures. They can
-illustrate UI behavior but cannot support a real-data demo or reported metrics.
-The frontend owner publishes real `ai/out/audits.jsonl` and
-`ai/out/eval_summary.json` into the viewer after evaluation.
+viewer. The merged `frontend/public/data/` now contains real evaluated data.
+The separate `shared/fixtures/` remains synthetic and must not support results.
 
 ## Data and limitations
 
@@ -116,10 +121,23 @@ counts are documented in `infra/gold_summary.md` and `infra/labeling.md`.
 
 ## Evaluation results
 
-Source: `ai/out/eval_summary.json` at `main` commit `a01c7452b140ddbecef5caa5898936b0bcdb9654`
-(generated `2026-10-25T23:46:48.247427+00:00`), plus `infra/gold_summary.md`.
-The evaluation file is on main, but `gold_set` is currently null.
-**Close Call versus human answer-key score: pending.**
+Source: `ai/out/eval_summary.json` at `main` commit `9f304172d22a70866e619a749a5f183adb17e613`
+(generated `2026-10-26T00:05:06.437978+00:00`), plus `infra/gold_summary.md`.
+On the 24 human-labeled PRs, Close Call matched the human label on 15. On the 7 PRs where humans were confident, Close Call escalated all 7 and never contradicted a human. Its only 2 confident verdicts came on PRs that humans rated uncertain.
+
+| Human label | UNSUPPORTED | CONFIRMED | ESCALATE |
+| --- | ---: | ---: | ---: |
+| NOT_JUSTIFIED | 0 | 0 | 4 |
+| JUSTIFIED | 0 | 0 | 3 |
+| UNCERTAIN | 1 | 1 | 15 |
+
+Rows are human labels; columns are hosted Gemma 4 verdicts via the Gemini API.
+The label mapping is NOT_JUSTIFIED ↔ UNSUPPORTED, JUSTIFIED ↔ CONFIRMED,
+UNCERTAIN ↔ ESCALATE. This is label agreement, not accuracy. On the confident
+human cases, Close Call abstained rather than making an opposite confident call;
+it did not reproduce those human decisions. This is not a claim of error-free
+classification. Human-human agreement is 1 of 2, too small to interpret.
+
 
 **Of 25 stale-bot closures in Jest old enough to judge, 5 (20%) were wrongful
 under the inferred later-redo label. The stale bot let all 5 close; Close Call
@@ -140,6 +158,12 @@ All five inferred wrongful cases were ESCALATE, not UNSUPPORTED. The result show
 conservative deferral to humans, not five affirmative wrongful-closure predictions.
 An 88% escalation rate also means substantial human review remains.
 Exact reported models: `gemini:models/gemma-4-26b-a4b-it` and `ollama:gemma4:e2b`.
+
+Citation checks across the full 42-audit runs (not just the 25 eligible closures):
+the local model had 21 of 148 citations rejected; the hosted model had 0 of 101
+rejected. These are citation-verification failures, not necessarily fabricated
+claims. Model size, hardware and concurrency differ; latency is not a controlled
+backend speed comparison.
 
 The source-filtered gold set contains 24 PRs with human labels from Allen,
 Emmanuel and Nilesh; Lio's 9 AI-assisted entries are excluded. Human-human agreement
@@ -176,5 +200,5 @@ Human review remains required. Do not publish security-sensitive details.
 Allen: frontend; Lio: collection/verifier/baselines; Nilesh: model/evaluation;
 Emmanuel: docs/gold labels/demo/submission preparation. See `infra/devpost.md`,
 `infra/demo_script.md`, and `infra/organizer_questions.md`. Organizer answers are recorded in `infra/organizer_questions.md`: teams may enter
-Open-Source AI; Best Use of Gemma 4 eligibility needs clarification. Evaluation counts are reported above; model-versus-human gold scoring,
-recorded video, and Devpost submission remain pending.
+Open-Source AI; Best Use of Gemma 4 eligibility needs clarification. Evaluation and human-label counts are reported above. Recorded video and
+Devpost submission remain pending.
