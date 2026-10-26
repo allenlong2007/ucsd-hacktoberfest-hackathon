@@ -1,10 +1,50 @@
 import copy
 import unittest
 
-from ai.eval.score import ROOT, approach, build_summary, eligible_records, gold_agreement, read_jsonl, validate_summary
+from ai.eval.score import ROOT, approach, build_summary, eligible_records, gold_agreement, human_only_key, score_human_only, read_jsonl, validate_summary
 
 
 class ScoreTests(unittest.TestCase):
+    def reviewer_rows(self):
+        assigned = {1: 'Allen', 2: 'Emmanuel', 3: 'Lio', 4: 'Nilesh', 5: 'Allen',
+                    6: 'Emmanuel', 7: 'Lio', 8: 'Nilesh', 9: 'Allen', 10: 'Emmanuel',
+                    11: 'Lio', 12: 'Nilesh', 13: 'Allen', 14: 'Emmanuel', 15: 'Lio',
+                    16: 'Nilesh', 17: 'Allen', 18: 'Emmanuel', 19: 'Lio', 20: 'Nilesh',
+                    21: 'Allen', 22: 'Emmanuel', 23: 'Lio', 24: 'Nilesh', 25: 'Allen',
+                    26: 'Emmanuel', 27: 'Lio', 28: 'Nilesh', 29: 'Allen', 30: 'Emmanuel'}
+        rows = [{"slot": str(i), "repo": "jestjs/jest", "pr_number": str(i),
+                 "reviewer_1": assigned[i], "label_1": "UNCERTAIN", "reviewer_2": "",
+                 "label_2": "", "human_label": "UNCERTAIN"} for i in range(1, 31)]
+        rows[2].update(label_1="NOT_JUSTIFIED", reviewer_2="Allen", label_2="UNCERTAIN")
+        rows[9].update(reviewer_2="Nilesh", label_2="JUSTIFIED")
+        rows[16].update(label_1="JUSTIFIED", reviewer_2="Lio", label_2="UNCERTAIN")
+        rows[23].update(reviewer_2="Emmanuel", label_2="UNCERTAIN")
+        rows[29].update(reviewer_2="Lio", label_2="JUSTIFIED")
+        payload = {"labels": [{"repo": r["repo"], "pr_number": int(r["pr_number"]),
+                               "human_label": r["human_label"]} for r in rows]}
+        return payload, rows
+
+    def test_human_only_key_drops_ai_only_slots_and_uses_human_overrides(self):
+        payload, rows = self.reviewer_rows()
+        result = human_only_key(payload, rows)
+        labels = {r["pr_number"]: r["human_label"] for r in result["labels"]}
+        self.assertEqual(len(labels), 24)
+        self.assertEqual(set(range(1,31)) - labels.keys(), {7,11,15,19,23,27})
+        self.assertEqual(labels[3], "UNCERTAIN")
+        self.assertEqual(labels[17], "JUSTIFIED")
+        self.assertEqual(labels[30], "UNCERTAIN")
+        self.assertEqual(result["reviewers"], 3)
+        self.assertEqual(result["agreement_reviewers"], "1/2 (human-human double labels; too small to interpret)")
+
+    def test_human_only_confusion_counts_all_retained_prs(self):
+        payload, rows = self.reviewer_rows()
+        audits = [{"repo": "jestjs/jest", "pr_number": i, "verdict": "ESCALATE"} for i in range(1,31)]
+        result = score_human_only(payload, rows, audits)
+        self.assertEqual(result["close_call_agreement"], "23/24")
+        self.assertEqual(result["confusion"]["JUSTIFIED"]["ESCALATE"], 1)
+        self.assertEqual(result["confusion"]["UNCERTAIN"]["ESCALATE"], 23)
+        self.assertEqual(sum(sum(r.values()) for r in result["confusion"].values()), 24)
+
     def test_gold_uses_three_way_human_agreement_without_outcome_labels(self):
         audits = [{"repo": "jestjs/jest", "pr_number": i, "verdict": verdict}
                   for i, verdict in enumerate(("CONFIRMED", "UNSUPPORTED", "ESCALATE"))]
